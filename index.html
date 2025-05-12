@@ -181,6 +181,26 @@
             z-index: 10;
         }
 
+        /* Protected area overlay */
+        .protected-area {
+            position: absolute;
+            background-color: rgba(255, 0, 0, 0.1);
+            border: 2px dashed rgba(255, 0, 0, 0.5);
+            pointer-events: none;
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .protected-area-label {
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
         /* Color picker */
         .color-picker-container {
             width: 100%;
@@ -198,13 +218,13 @@
             padding: 1rem;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-            gap: 6px;
+            gap: 8px;
         }
 
         .color-option {
             width: 32px;
             height: 32px;
-            border-radius: 6px;
+            border-radius: 50%; /* Changed to circles */
             cursor: pointer;
             border: 2px solid transparent;
             transition: all 0.15s ease;
@@ -213,13 +233,13 @@
         }
 
         .color-option:hover {
-            transform: scale(1.1);
+            transform: scale(1.2);
             box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
         }
 
         .color-option.selected {
             border-color: white;
-            transform: scale(1.1);
+            transform: scale(1.2);
             box-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
         }
 
@@ -1073,6 +1093,9 @@
         <div id="canvas-container">
             <canvas id="place-canvas" width="100" height="100"></canvas>
             <div class="hover-pixel" id="hover-pixel"></div>
+            <div class="protected-area" id="protected-area" style="display: none;">
+                <div class="protected-area-label">Protected Area</div>
+            </div>
         </div>
         
         <div class="color-picker-container">
@@ -1101,9 +1124,6 @@
                     <div class="control-group-row">
                         <button id="timelapse-button" class="btn btn-outline">
                             <i class="fas fa-film"></i> View Timelapse
-                        </button>
-                        <button id="template-button" class="btn btn-outline">
-                            <i class="fas fa-image"></i> Load Template
                         </button>
                         <button id="help-button" class="btn btn-outline">
                             <i class="fas fa-question-circle"></i> Help
@@ -1223,50 +1243,9 @@
                         <button id="timelapse-pause" class="btn btn-sm btn-outline">
                             <i class="fas fa-pause"></i> Pause
                         </button>
-                        <button id="timelapse-export" class="btn btn-sm btn-outline">
-                            <i class="fas fa-download"></i> Export
-                        </button>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Template Modal -->
-    <div class="modal" id="template-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title">Load Template</div>
-                <button class="modal-close">&times;</button>
-            </div>
-            <form id="template-form">
-                <div class="form-group">
-                    <label for="template-url" class="form-label">Image URL</label>
-                    <input type="url" 
-                           class="form-input" 
-                           id="template-url" 
-                           placeholder="https://example.com/image.png"
-                           required>
-                    <small class="text-muted">Enter URL of an image to use as a template</small>
-                </div>
-                <div class="form-group">
-                    <label for="template-opacity" class="form-label">Opacity</label>
-                    <input type="range" 
-                           class="form-input" 
-                           id="template-opacity" 
-                           min="10" 
-                           max="100" 
-                           value="50">
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-outline" id="template-cancel">
-                        Cancel
-                    </button>
-                    <button type="submit" class="btn" id="template-submit">
-                        <i class="fas fa-image"></i> Load Template
-                    </button>
-                </div>
-            </form>
         </div>
     </div>
 
@@ -1285,6 +1264,7 @@
                     <li>Choose colors from the palette at the bottom</li>
                     <li>White color erases pixels</li>
                     <li>There's a cooldown between placing pixels</li>
+                    <li>The central 50×50 area is protected and cannot be modified</li>
                     <li>Work together with others to create amazing artwork!</li>
                 </ul>
                 
@@ -1396,8 +1376,13 @@
         // Canvas setup
         const canvas = document.getElementById('place-canvas');
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        let canvasSize = 100; // Will be updated from Firebase
+        let canvasSize = 1000; // Will be updated from Firebase
         const basePixelSize = 3; // Base size of each pixel
+        
+        // Protected area setup
+        const protectedAreaSize = 50;
+        let protectedAreaStart = 0;
+        let protectedAreaEnd = 0;
         
         // Current view properties
         let zoom = 1;
@@ -1522,6 +1507,17 @@
             // Update hover pixel size
             hoverPixel.style.width = pixelSize + 'px';
             hoverPixel.style.height = pixelSize + 'px';
+            
+            // Update protected area position and size
+            const protectedArea = document.getElementById('protected-area');
+            protectedAreaStart = Math.floor((canvasSize - protectedAreaSize) / 2);
+            protectedAreaEnd = protectedAreaStart + protectedAreaSize;
+            
+            protectedArea.style.width = (protectedAreaSize * pixelSize) + 'px';
+            protectedArea.style.height = (protectedAreaSize * pixelSize) + 'px';
+            protectedArea.style.left = (protectedAreaStart * pixelSize) + 'px';
+            protectedArea.style.top = (protectedAreaStart * pixelSize) + 'px';
+            protectedArea.style.display = 'block';
             
             // Mark canvas for redraw
             canvas.needsRedraw = true;
@@ -1648,6 +1644,13 @@
             // Ensure coordinates are within bounds
             if (x < 0 || x >= canvasSize || y < 0 || y >= canvasSize) {
                 showNotification('Cannot place pixel outside canvas', 'error');
+                return;
+            }
+
+            // Check if pixel is in protected area
+            if (x >= protectedAreaStart && x < protectedAreaEnd && 
+                y >= protectedAreaStart && y < protectedAreaEnd) {
+                showNotification('This area is protected and cannot be modified', 'error');
                 return;
             }
 
@@ -1999,14 +2002,14 @@
             // Initialize user presence
             setupUserPresence();
             
-            // Load canvas
+            // Load canvas size from Firebase
             const configRef = ref(db, 'config/canvasSize');
-            get(configRef).then((snapshot) => {
+            onValue(configRef, (snapshot) => {
                 if (snapshot.exists()) {
                     canvasSize = snapshot.val();
+                    resizeCanvas();
+                    drawCanvas();
                 }
-                resizeCanvas();
-                drawCanvas();
             });
             
             // Load recent history
@@ -2046,13 +2049,23 @@
                 hoverPixel.style.left = (x * basePixelSize * zoom) + 'px';
                 hoverPixel.style.top = (y * basePixelSize * zoom) + 'px';
                 hoverPixel.style.backgroundColor = selectedColor;
+                
+                // Change cursor style if in protected area
+                if (x >= protectedAreaStart && x < protectedAreaEnd && 
+                    y >= protectedAreaStart && y < protectedAreaEnd) {
+                    canvas.style.cursor = 'not-allowed';
+                } else {
+                    canvas.style.cursor = 'crosshair';
+                }
             } else {
                 hoverPixel.style.display = 'none';
+                canvas.style.cursor = 'crosshair';
             }
         }, 50));
         
         canvas.addEventListener('mouseout', () => {
             hoverPixel.style.display = 'none';
+            canvas.style.cursor = 'crosshair';
         });
 
         // Zoom controls
@@ -2181,24 +2194,6 @@
             });
             document.querySelector('#timelapse-modal .modal-close').addEventListener('click', () => {
                 timelapseModal.classList.remove('active');
-            });
-            
-            // Template modal
-            const templateModal = document.getElementById('template-modal');
-            document.getElementById('template-button').addEventListener('click', () => {
-                templateModal.classList.add('active');
-            });
-            document.querySelector('#template-modal .modal-close').addEventListener('click', () => {
-                templateModal.classList.remove('active');
-            });
-            document.getElementById('template-cancel').addEventListener('click', () => {
-                templateModal.classList.remove('active');
-            });
-            document.getElementById('template-form').addEventListener('submit', (e) => {
-                e.preventDefault();
-                // TODO: Implement template loading
-                showNotification('Template loaded successfully', 'success');
-                templateModal.classList.remove('active');
             });
             
             // Help modal
