@@ -3,31 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Astro Places - Collaborative Pixel Canvas</title>
+    <title>Astro Places</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --primary: #ff4500;
-            --primary-dark: #e03d00;
-            --primary-light: #ff6b33;
-            --bg-dark: #1a1a1b;
-            --bg-darker: #121213;
-            --bg-light: #272729;
-            --bg-lighter: #343536;
+            --primary-hover: #ff5722;
+            --background: #1a1a1b;
+            --surface: #272729;
+            --surface-dark: #1e1e1f;
+            --surface-light: #343536;
             --text-primary: #d7dadc;
             --text-secondary: #818384;
-            --text-tertiary: #565859;
             --border: #343536;
-            --success: #00a368;
-            --error: #be0039;
-            --warning: #ffa800;
-            --info: #3690ea;
+            --success: #4caf50;
+            --error: #f44336;
+            --warning: #ff9800;
+            --info: #2196f3;
+            --grid-color: #2c2c2c;
         }
 
         * {
             box-sizing: border-box;
-            margin: 0;
-            padding: 0;
         }
 
         body {
@@ -35,50 +32,47 @@
             margin: 0;
             padding: 0;
             display: flex;
-            background-color: var(--bg-dark);
+            background-color: var(--background);
             color: var(--text-primary);
             height: 100vh;
             overflow: hidden;
             line-height: 1.5;
         }
 
-        /* Scrollbar styling */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--bg-light);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--primary);
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--primary-light);
-        }
-
-        /* Main layout */
         .main-content {
             display: flex;
             flex-direction: column;
-            flex: 1;
-            min-width: 0;
-            height: 100vh;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
             overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--surface-light) var(--background);
+        }
+
+        .main-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .main-content::-webkit-scrollbar-track {
+            background: var(--background);
+        }
+
+        .main-content::-webkit-scrollbar-thumb {
+            background-color: var(--surface-light);
+            border-radius: 4px;
         }
 
         .sidebar {
             width: 320px;
-            background-color: var(--bg-dark);
+            padding: 1rem;
+            background-color: var(--surface-dark);
             border-left: 1px solid var(--border);
+            overflow-y: auto;
             height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+            transition: transform 0.3s ease;
         }
 
         .left-sidebar {
@@ -86,83 +80,85 @@
             border-right: 1px solid var(--border);
         }
 
-        .sidebar-content {
-            padding: 1rem;
-            overflow-y: auto;
-            flex: 1;
-        }
-
         .sidebar-header {
-            padding: 1rem;
-            border-bottom: 1px solid var(--border);
-            font-weight: bold;
-            font-size: 1.1rem;
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            background-color: var(--bg-darker);
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
         }
 
-        .sidebar-header i {
+        .sidebar-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .sidebar-toggle {
+            background: none;
+            border: none;
             color: var(--text-secondary);
             cursor: pointer;
+            font-size: 1rem;
+            display: none;
         }
 
-        /* Header */
         .header {
             width: 100%;
-            background-color: var(--bg-darker);
+            background-color: var(--surface-dark);
             color: white;
-            padding: 0.8rem 1rem;
+            text-align: center;
+            padding: 1rem 0;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
-            border-bottom: 1px solid var(--border);
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            position: relative;
+            border-radius: 8px;
         }
 
         .logo {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             text-decoration: none;
         }
 
         .logo-icon {
-            font-size: 1.8rem;
-            color: var(--primary);
+            font-size: 28px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #ff4500, #ff8c00);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .logo-text {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--primary);
-            letter-spacing: 0.5px;
+            font-size: 24px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ff4500, #ff8c00);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        .header-controls {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-        }
-
-        /* Canvas container */
         #canvas-container {
             position: relative;
-            margin: 1rem auto;
+            margin-bottom: 1.5rem;
             border: 1px solid var(--border);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
             overflow: hidden;
+            border-radius: 8px;
             background-image: 
-                linear-gradient(45deg, var(--bg-lighter) 25%, transparent 25%), 
-                linear-gradient(-45deg, var(--bg-lighter) 25%, transparent 25%), 
-                linear-gradient(45deg, transparent 75%, var(--bg-lighter) 75%), 
-                linear-gradient(-45deg, transparent 75%, var(--bg-lighter) 75%);
+                linear-gradient(45deg, var(--grid-color) 25%, transparent 25%), 
+                linear-gradient(-45deg, var(--grid-color) 25%, transparent 25%), 
+                linear-gradient(45deg, transparent 75%, var(--grid-color) 75%), 
+                linear-gradient(-45deg, transparent 75%, var(--grid-color) 75%);
             background-size: 20px 20px;
             background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-            flex-shrink: 0;
         }
 
         #place-canvas {
@@ -175,153 +171,153 @@
         .hover-pixel {
             position: absolute;
             pointer-events: none;
-            border: 1px solid rgba(255, 255, 255, 0.7);
-            box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.7);
             display: none;
             z-index: 10;
-        }
-
-        /* Protected area overlay */
-        .protected-area {
-            position: absolute;
-            background-color: rgba(255, 0, 0, 0.1);
-            border: 2px dashed rgba(255, 0, 0, 0.5);
-            pointer-events: none;
-            z-index: 5;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .protected-area-label {
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            font-size: 0.9rem;
-        }
-
-        /* Color picker */
-        .color-picker-container {
-            width: 100%;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 0 1rem;
+            mix-blend-mode: difference;
         }
 
         .color-picker {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            margin: 1rem 0;
-            background-color: var(--bg-light);
-            padding: 1rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            margin: 1.5rem 0;
+            max-width: 500px;
+            background-color: var(--surface);
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
             gap: 8px;
         }
 
         .color-option {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%; /* Changed to circles */
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
             cursor: pointer;
             border: 2px solid transparent;
-            transition: all 0.15s ease;
+            transition: all 0.2s ease;
             position: relative;
             overflow: hidden;
         }
 
         .color-option:hover {
-            transform: scale(1.2);
-            box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+            transform: scale(1.15);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
         }
 
         .color-option.selected {
-            border-color: white;
-            transform: scale(1.2);
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+            border: 2px solid white;
+            transform: scale(1.15);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
         }
 
-        .color-option .color-tooltip {
+        .color-option.selected::after {
+            content: '';
             position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: var(--bg-light);
-            color: var(--text-primary);
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-            z-index: 20;
-        }
-
-        .color-option:hover .color-tooltip {
-            opacity: 1;
-        }
-
-        /* Controls */
-        .controls-container {
-            width: 100%;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 0 1rem;
+            top: -5px;
+            right: -5px;
+            width: 15px;
+            height: 15px;
+            background-color: var(--primary);
+            transform: rotate(45deg);
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
         }
 
         .controls {
             display: flex;
             flex-direction: column;
-            gap: 1rem;
-            margin-bottom: 1rem;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            gap: 12px;
+            width: 100%;
         }
 
         .control-group {
             display: flex;
-            flex-wrap: wrap;
-            gap: 0.8rem;
+            align-items: center;
+            gap: 16px;
+            margin: 8px 0;
+            width: 100%;
             justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        #zoom-controls {
+            display: flex;
+            gap: 12px;
             align-items: center;
         }
 
-        .control-group-row {
-            display: flex;
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            display: inline-flex;
             align-items: center;
-            gap: 0.8rem;
-            width: 100%;
+            gap: 8px;
+            font-size: 0.95rem;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(255, 69, 0, 0.2);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background-color: var(--surface-light);
+            cursor: not-allowed;
+            opacity: 0.7;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        button.secondary {
+            background-color: var(--surface);
+            color: var(--text-primary);
+        }
+
+        button.secondary:hover {
+            background-color: var(--surface-light);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        button.icon-button {
+            padding: 8px;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            justify-content: center;
         }
 
         #cooldown {
-            font-weight: bold;
-            padding: 0.6rem 1rem;
-            border-radius: 6px;
-            background-color: var(--bg-light);
-            display: flex;
+            font-weight: 600;
+            color: var(--primary);
+            margin-top: 0.5rem;
+            padding: 10px 16px;
+            border-radius: 24px;
+            background-color: var(--surface);
+            display: inline-flex;
             align-items: center;
-            gap: 0.8rem;
-            min-width: 200px;
-            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         .cooldown-active {
-            color: var(--primary);
-        }
-
-        .cooldown-ready {
-            color: var(--success);
-        }
-
-        #coordinates {
-            padding: 0.6rem 1rem;
-            font-family: 'Fira Code', monospace;
-            background-color: var(--bg-light);
-            border-radius: 6px;
-            min-width: 120px;
-            text-align: center;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
         .timer-circle {
@@ -341,7 +337,7 @@
         }
 
         .timer-bg {
-            stroke: var(--bg-lighter);
+            stroke: var(--surface-light);
         }
 
         .timer-progress {
@@ -349,672 +345,802 @@
             transition: stroke-dashoffset 1s linear;
         }
 
-        /* Buttons */
-        .btn {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 0.6rem 1.2rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.95rem;
-        }
-
-        .btn:hover {
-            background-color: var(--primary-light);
-            transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(255, 69, 0, 0.3);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-            box-shadow: none;
-        }
-
-        .btn:disabled {
-            background-color: var(--bg-lighter);
-            color: var(--text-tertiary);
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .btn-outline {
-            background-color: transparent;
-            border: 1px solid var(--primary);
-            color: var(--primary);
-        }
-
-        .btn-outline:hover {
-            background-color: rgba(255, 69, 0, 0.1);
-        }
-
-        .btn-sm {
-            padding: 0.4rem 0.8rem;
-            font-size: 0.85rem;
-        }
-
-        .btn-icon {
-            padding: 0.5rem;
-            width: 36px;
-            height: 36px;
-            justify-content: center;
-        }
-
-        /* Stats */
         .stats-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 0.8rem;
+            display: flex;
+            justify-content: space-between;
             width: 100%;
-            max-width: 800px;
-            margin: 1rem auto;
-            padding: 0 1rem;
+            max-width: 700px;
+            margin-top: 1.5rem;
+            padding: 16px;
+            background-color: var(--surface);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            gap: 16px;
         }
 
-        .stat-card {
-            background-color: var(--bg-light);
-            border-radius: 8px;
-            padding: 1rem;
-            text-align: center;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        .stat-value {
-            font-size: 1.5rem;
-            font-weight: bold;
-            margin-bottom: 0.3rem;
-            color: var(--primary);
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0 12px;
+            flex: 1;
+            min-width: 120px;
         }
 
         .stat-label {
             font-size: 0.85rem;
             color: var(--text-secondary);
+            margin-bottom: 4px;
+            text-align: center;
         }
 
-        /* History viewer */
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), #ff8c00);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        #coordinates {
+            padding: 10px 16px;
+            font-family: 'Fira Code', monospace;
+            background-color: var(--surface);
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
         .history-viewer {
             width: 100%;
-            max-width: 800px;
-            margin: 1rem auto;
-            padding: 0 1rem;
+            margin-top: 1.5rem;
+            padding: 20px;
+            background-color: var(--surface);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
-        .history-card {
-            background-color: var(--bg-light);
-            border-radius: 8px;
-            padding: 1rem;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        .card-title {
+        .history-title {
             font-size: 1.1rem;
-            font-weight: bold;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--text-primary);
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 8px;
         }
 
         .history-container {
             display: flex;
-            gap: 0.8rem;
+            gap: 12px;
             overflow-x: auto;
-            padding-bottom: 0.5rem;
+            padding-bottom: 12px;
             scrollbar-width: thin;
+            scrollbar-color: var(--surface-light) var(--surface);
+        }
+
+        .history-container::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .history-container::-webkit-scrollbar-track {
+            background: var(--surface);
+            border-radius: 3px;
+        }
+
+        .history-container::-webkit-scrollbar-thumb {
+            background-color: var(--surface-light);
+            border-radius: 3px;
         }
 
         .history-item {
             display: flex;
-            flex-direction: column;
-            gap: 0.3rem;
-            padding: 0.8rem;
-            background-color: var(--bg-lighter);
-            border-radius: 6px;
-            font-size: 0.85rem;
-            min-width: 120px;
-        }
-
-        .history-item-header {
-            display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 8px;
+            padding: 10px 14px;
+            background-color: var(--surface-light);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            flex-shrink: 0;
+            transition: transform 0.2s ease;
         }
 
-        .history-user {
+        .history-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .history-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+
+        .history-username {
             font-weight: 600;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 100px;
+            color: var(--primary);
         }
 
         .history-coords {
             font-family: 'Fira Code', monospace;
             color: var(--text-secondary);
+        }
+
+        .history-time {
+            color: var(--text-secondary);
             font-size: 0.8rem;
         }
 
-        .history-color {
-            width: 100%;
-            height: 20px;
-            border-radius: 4px;
-            margin-top: 0.3rem;
-        }
-
-        /* Leaderboard */
         .leaderboard {
             width: 100%;
-            margin-bottom: 1rem;
+            margin-top: 1.5rem;
+            padding: 20px;
+            background-color: var(--surface);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
-        .leaderboard-card {
-            background-color: var(--bg-light);
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        .leaderboard-header {
+        .leaderboard-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--text-primary);
             display: flex;
-            justify-content: space-between;
-            padding: 0.8rem 1rem;
-            font-weight: bold;
-            background-color: var(--bg-lighter);
-            border-bottom: 1px solid var(--border);
+            align-items: center;
+            gap: 8px;
         }
 
         .leaderboard-container {
-            max-height: 400px;
-            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
         .leaderboard-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0.8rem 1rem;
-            border-bottom: 1px solid var(--border);
-            transition: background-color 0.2s;
-        }
-
-        .leaderboard-item:last-child {
-            border-bottom: none;
+            padding: 12px 16px;
+            background-color: var(--surface-light);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
         }
 
         .leaderboard-item:hover {
-            background-color: var(--bg-lighter);
+            transform: translateX(5px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
         .leaderboard-user {
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-        }
-
-        .leaderboard-position {
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: var(--bg-lighter);
-            border-radius: 50%;
-            font-weight: bold;
-            font-size: 0.8rem;
-            color: var(--primary);
-        }
-
-        .leaderboard-avatar {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background-color: var(--primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: white;
-            font-size: 0.8rem;
-        }
-
-        .leaderboard-name {
             font-weight: 600;
-            max-width: 150px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .leaderboard-count {
-            font-weight: bold;
             color: var(--primary);
+            font-weight: 700;
         }
 
-        /* User info */
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 1rem;
-            background-color: var(--bg-light);
-            border-bottom: 1px solid var(--border);
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: var(--primary);
+        .leaderboard-position {
+            width: 28px;
+            height: 28px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
-            color: white;
-            font-size: 1.2rem;
+            background-color: var(--surface-dark);
+            border-radius: 50%;
+            font-weight: 700;
+            color: var(--primary);
+            margin-right: 12px;
+            flex-shrink: 0;
         }
 
-        .user-details {
-            flex: 1;
-            min-width: 0;
+        .position-1 {
+            background: linear-gradient(135deg, #ffd700, #ff9800);
+            color: #000;
         }
 
-        .user-name {
-            font-weight: bold;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        .position-2 {
+            background: linear-gradient(135deg, #c0c0c0, #9e9e9e);
+            color: #000;
         }
 
-        .user-pixels {
-            font-size: 0.8rem;
+        .position-3 {
+            background: linear-gradient(135deg, #cd7f32, #8d6e63);
+            color: #fff;
+        }
+
+        .leaderboard-header {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 16px;
+            font-weight: 600;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 8px;
             color: var(--text-secondary);
+            font-size: 0.9rem;
         }
 
-        .logout-btn {
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            cursor: pointer;
-            padding: 0.5rem;
-            border-radius: 4px;
-            transition: all 0.2s;
-        }
-
-        .logout-btn:hover {
-            color: var(--text-primary);
-            background-color: var(--bg-lighter);
-        }
-
-        /* Modals */
-        .modal {
+        .username-modal {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
+            background-color: rgba(0, 0, 0, 0.9);
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 1000;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.3s ease-out;
         }
 
-        .modal.active {
-            opacity: 1;
-            pointer-events: all;
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
-        .modal-content {
-            background-color: var(--bg-light);
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+        .username-box {
+            background-color: var(--surface-dark);
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            width: 380px;
+            max-width: 95%;
+            text-align: center;
+            animation: slideUp 0.4s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .username-title {
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+            font-weight: 700;
+            background: linear-gradient(135deg, #ff4500, #ff8c00);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .username-input {
             width: 100%;
-            max-width: 500px;
-            max-height: 90vh;
-            overflow-y: auto;
-            transform: translateY(20px);
-            transition: transform 0.3s ease;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            background-color: var(--surface);
+            border: 2px solid var(--border);
+            color: var(--text-primary);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.2s ease;
         }
 
-        .modal.active .modal-content {
+        .username-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(255, 69, 0, 0.2);
+        }
+
+        .username-submit {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #ff4500, #ff8c00);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .username-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 69, 0, 0.3);
+        }
+
+        .username-submit:active {
             transform: translateY(0);
         }
 
-        .modal-header {
+        .discord-widget {
+            width: 100%;
+            height: 500px;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-top: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 1.5rem;
+            padding: 12px;
+            background-color: var(--surface);
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff4500, #ff8c00);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: white;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 1.05rem;
+        }
+
+        .user-status {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--success);
+        }
+
+        .logout-btn {
+            margin-left: auto;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: color 0.2s ease;
+            padding: 6px 10px;
+            border-radius: 6px;
+        }
+
+        .logout-btn:hover {
+            color: var(--text-primary);
+            background-color: rgba(255, 69, 0, 0.1);
+        }
+
+        #notification {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background-color: var(--surface-dark);
+            color: white;
+            padding: 14px 20px;
+            border-radius: 8px;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+            display: none;
+            z-index: 100;
+            animation: slideIn 0.3s ease-out;
+            max-width: 320px;
+            border-left: 4px solid var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .notification-success {
+            border-left-color: var(--success);
+        }
+
+        .notification-error {
+            border-left-color: var(--error);
+        }
+
+        .notification-icon {
+            font-size: 1.2rem;
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .tooltip {
+            position: absolute;
+            background-color: var(--surface-dark);
+            color: var(--text-primary);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            pointer-events: none;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            max-width: 200px;
+            border: 1px solid var(--border);
+        }
+
+        .tooltip::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 5px 5px 0;
+            border-style: solid;
+            border-color: var(--surface-dark) transparent transparent;
+        }
+
+        .color-option:hover .tooltip {
+            opacity: 1;
+        }
+
+        .context-menu {
+            position: absolute;
+            background-color: var(--surface-dark);
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            z-index: 1000;
+            width: 200px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            display: none;
+        }
+
+        .context-menu-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background-color 0.2s ease;
+        }
+
+        .context-menu-item:hover {
+            background-color: var(--surface);
+        }
+
+        .context-menu-divider {
+            height: 1px;
+            background-color: var(--border);
+            margin: 4px 0;
+        }
+
+        .pixel-info {
+            position: absolute;
+            background-color: var(--surface-dark);
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+            border: 1px solid var(--border);
+            display: none;
+            max-width: 240px;
+        }
+
+        .pixel-info-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .pixel-color {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+        }
+
+        .pixel-coords {
+            font-family: 'Fira Code', monospace;
+            font-weight: 600;
+        }
+
+        .pixel-user {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid var(--border);
+        }
+
+        .pixel-user-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .pixel-time {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+
+        .tab {
+            padding: 10px 16px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab:hover:not(.active) {
+            color: var(--text-primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .settings-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .settings-option:last-child {
+            border-bottom: none;
+        }
+
+        .settings-label {
+            font-weight: 500;
+        }
+
+        .settings-description {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--surface-light);
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--primary);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .color-picker-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .custom-color-input {
+            width: 60px;
+            height: 36px;
+            padding: 2px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            background: none;
+            cursor: pointer;
+        }
+
+        .custom-color-input::-webkit-color-swatch {
+            border: none;
+            border-radius: 6px;
+        }
+
+        .custom-color-input::-moz-color-swatch {
+            border: none;
+            border-radius: 6px;
+        }
+
+        .eraser-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background-color: var(--surface-light);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .eraser-toggle:hover {
+            background-color: var(--surface);
+        }
+
+        .eraser-toggle.active {
+            background-color: rgba(255, 69, 0, 0.2);
+            border: 1px solid var(--primary);
+        }
+
+        .eraser-icon {
+            color: var(--error);
+        }
+
+        .timelapse-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .timelapse-content {
+            background-color: var(--surface-dark);
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow: auto;
+        }
+
+        .timelapse-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 1.5rem;
         }
 
-        .modal-title {
+        .timelapse-title {
             font-size: 1.5rem;
-            font-weight: bold;
+            font-weight: 700;
             color: var(--primary);
         }
 
-        .modal-close {
+        .timelapse-close {
             background: none;
             border: none;
             color: var(--text-secondary);
             font-size: 1.5rem;
             cursor: pointer;
-            padding: 0.5rem;
-            transition: color 0.2s;
-        }
-
-        .modal-close:hover {
-            color: var(--text-primary);
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 0.8rem;
-            background-color: var(--bg-lighter);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            border-radius: 6px;
-            font-size: 1rem;
-            transition: border-color 0.2s;
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
-        .form-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 0.8rem;
-            margin-top: 2rem;
-        }
-
-        /* Notification */
-        #notification {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: var(--bg-light);
-            color: white;
-            padding: 0.8rem 1.2rem;
-            border-radius: 6px;
-            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.3);
-            display: none;
-            z-index: 100;
-            max-width: 300px;
-            transform: translateY(100px);
-            opacity: 0;
-            transition: all 0.3s ease;
-        }
-
-        #notification.show {
-            transform: translateY(0);
-            opacity: 1;
-        }
-
-        .notification-success {
-            border-left: 4px solid var(--success);
-        }
-
-        .notification-error {
-            border-left: 4px solid var(--error);
-        }
-
-        .notification-warning {
-            border-left: 4px solid var(--warning);
-        }
-
-        .notification-info {
-            border-left: 4px solid var(--info);
-        }
-
-        /* Timelapse viewer */
-        .timelapse-container {
-            width: 100%;
-            height: 400px;
-            background-color: var(--bg-lighter);
-            border-radius: 8px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        #timelapse-canvas {
-            width: 100%;
-            height: 100%;
-            image-rendering: pixelated;
         }
 
         .timelapse-controls {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
-            padding: 1rem;
             display: flex;
-            flex-direction: column;
-            gap: 0.8rem;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 1.5rem;
         }
 
         .timelapse-slider {
             width: 100%;
-            -webkit-appearance: none;
-            height: 6px;
-            background: var(--bg-light);
-            border-radius: 3px;
-            outline: none;
+            margin: 1rem 0;
         }
 
-        .timelapse-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: var(--primary);
-            cursor: pointer;
-        }
-
-        .timelapse-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 0.8rem;
-        }
-
-        /* Discord widget */
-        .discord-widget {
-            width: 100%;
-            height: 400px;
+        .timelapse-canvas-container {
+            position: relative;
+            margin: 0 auto;
+            border: 1px solid var(--border);
             border-radius: 8px;
             overflow: hidden;
+        }
+
+        .timelapse-canvas {
+            display: block;
+            image-rendering: pixelated;
+            background-color: white;
+        }
+
+        .timelapse-info {
+            display: flex;
+            justify-content: space-between;
             margin-top: 1rem;
-            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
         }
 
-        /* Responsive design */
-        @media (max-width: 1200px) {
-            .sidebar {
-                width: 280px;
-            }
-        }
-
-        @media (max-width: 992px) {
-            body {
-                flex-direction: column;
-                height: auto;
-                overflow-y: auto;
-            }
-
-            .sidebar {
-                width: 100%;
-                height: auto;
-                border-left: none;
-                border-right: none;
-                border-top: 1px solid var(--border);
-                order: 2;
-            }
-
-            .main-content {
-                order: 1;
-                height: auto;
-            }
-
-            .sidebar-content {
-                max-height: 400px;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .header {
-                flex-direction: column;
-                gap: 0.8rem;
-                padding: 0.8rem;
-            }
-
-            .header-controls {
-                width: 100%;
-                justify-content: space-between;
-            }
-
-            .control-group {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .control-group-row {
-                flex-direction: column;
-                gap: 0.5rem;
-            }
-
-            #cooldown, #coordinates {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .stats-container {
-                grid-template-columns: 1fr 1fr;
-            }
-
-            .history-item {
-                min-width: 100px;
-            }
-        }
-
-        @media (max-width: 576px) {
-            .stats-container {
-                grid-template-columns: 1fr;
-            }
-
-            .modal-content {
-                padding: 1.5rem;
-            }
-
-            .form-actions {
-                flex-direction: column;
-            }
-
-            .btn {
-                width: 100%;
-            }
-        }
-
-        /* Animations */
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @keyframes slideInUp {
-            from {
-                transform: translateY(20px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        .animate-fade {
-            animation: fadeIn 0.3s ease-out;
-        }
-
-        .animate-slide-up {
-            animation: slideInUp 0.3s ease-out;
-        }
-
-        /* Tooltip */
-        .tooltip {
-            position: relative;
+        .loading-spinner {
             display: inline-block;
-        }
-
-        .tooltip .tooltip-text {
-            visibility: hidden;
-            width: 120px;
-            background-color: var(--bg-light);
-            color: var(--text-primary);
-            text-align: center;
-            border-radius: 6px;
-            padding: 5px;
-            position: absolute;
-            z-index: 1;
-            bottom: 125%;
-            left: 50%;
-            transform: translateX(-50%);
-            opacity: 0;
-            transition: opacity 0.3s;
-            font-size: 0.8rem;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-        }
-
-        .tooltip .tooltip-text::after {
-            content: "";
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            margin-left: -5px;
-            border-width: 5px;
-            border-style: solid;
-            border-color: var(--bg-light) transparent transparent transparent;
-        }
-
-        .tooltip:hover .tooltip-text {
-            visibility: visible;
-            opacity: 1;
-        }
-
-        /* Loading spinner */
-        .spinner {
-            width: 24px;
-            height: 24px;
+            width: 20px;
+            height: 20px;
             border: 3px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
             border-top-color: var(--primary);
@@ -1025,287 +1151,461 @@
             to { transform: rotate(360deg); }
         }
 
-        /* Empty state */
         .empty-state {
-            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             padding: 2rem;
+            text-align: center;
             color: var(--text-secondary);
         }
 
-        .empty-state i {
+        .empty-state-icon {
             font-size: 2rem;
             margin-bottom: 1rem;
-            color: var(--text-tertiary);
+            color: var(--primary);
         }
 
-        .empty-state p {
-            margin-top: 0.5rem;
+        .empty-state-text {
+            max-width: 300px;
+        }
+
+        /* Responsive styles */
+        @media (max-width: 1200px) {
+            .sidebar {
+                width: 280px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            body {
+                flex-direction: column;
+                overflow-y: auto;
+                height: auto;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+                border-left: none;
+                border-right: none;
+                border-top: 1px solid var(--border);
+                order: 2;
+            }
+            
+            .main-content {
+                order: 1;
+            }
+            
+            .sidebar-toggle {
+                display: block;
+            }
+            
+            .sidebar.collapsed {
+                transform: translateX(-100%);
+            }
+            
+            .left-sidebar.collapsed {
+                transform: translateX(100%);
+            }
+            
+            .discord-widget {
+                height: 400px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .color-picker {
+                max-width: 100%;
+            }
+            
+            .stats-container {
+                flex-wrap: wrap;
+            }
+            
+            .stat-item {
+                width: 50%;
+                margin-bottom: 12px;
+            }
+            
+            .control-group {
+                flex-direction: column;
+                gap: 12px;
+            }
+            
+            #zoom-controls {
+                order: 2;
+            }
+            
+            .header {
+                padding: 0.75rem 0;
+            }
+            
+            .logo-icon {
+                font-size: 24px;
+            }
+            
+            .logo-text {
+                font-size: 20px;
+            }
+            
+            .user-info {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .logout-btn {
+                margin-left: 0;
+                margin-top: 8px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .stat-item {
+                width: 100%;
+            }
+            
+            .username-box {
+                padding: 1.5rem;
+            }
+            
+            .username-title {
+                font-size: 1.5rem;
+            }
+            
+            .history-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+                padding: 8px 12px;
+            }
+            
+            .leaderboard-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+                padding: 10px 12px;
+            }
+            
+            .leaderboard-user {
+                width: 100%;
+            }
+            
+            .leaderboard-count {
+                margin-left: auto;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Left Sidebar -->
     <div class="sidebar left-sidebar">
+        <div class="sidebar-header">
+            <h3 class="sidebar-title">User Profile</h3>
+            <button class="sidebar-toggle" id="left-sidebar-toggle">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+        </div>
+        
         <div class="user-info" id="user-info" style="display: none;">
             <div class="user-avatar" id="user-avatar">U</div>
             <div class="user-details">
                 <div class="user-name" id="username-display">Username</div>
-                <div class="user-pixels"><span id="your-pixels">0</span> pixels placed</div>
+                <div class="user-status">
+                    <span class="status-indicator"></span>
+                    <span>Online</span>
+                </div>
             </div>
-            <button class="logout-btn" id="logout-btn" title="Logout">
+            <button class="logout-btn" id="logout-btn">
                 <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
             </button>
         </div>
-
-        <div class="sidebar-header">
-            <span>Leaderboard</span>
-            <i class="fas fa-trophy"></i>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="leaderboard">Leaderboard</div>
+            <div class="tab" data-tab="settings">Settings</div>
         </div>
-        <div class="sidebar-content">
-            <div class="leaderboard-card">
-                <div class="leaderboard-header">
-                    <span>User</span>
-                    <span>Pixels</span>
+        
+        <div class="tab-content active" id="leaderboard-tab">
+            <div class="leaderboard">
+                <div class="leaderboard-title">
+                    <i class="fas fa-trophy"></i>
+                    Top Contributors
                 </div>
                 <div class="leaderboard-container" id="leaderboard-container">
-                    <!-- Leaderboard items will be inserted here -->
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="fas fa-spinner loading-spinner"></i>
+                        </div>
+                        <div class="empty-state-text">Loading leaderboard...</div>
+                    </div>
                 </div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="settings-tab">
+            <div class="settings-option">
+                <div>
+                    <div class="settings-label">Dark Mode</div>
+                    <div class="settings-description">Toggle between light and dark theme</div>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="dark-mode-toggle" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            
+            <div class="settings-option">
+                <div>
+                    <div class="settings-label">Grid Visibility</div>
+                    <div class="settings-description">Show/hide the background grid</div>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="grid-toggle" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            
+            <div class="settings-option">
+                <div>
+                    <div class="settings-label">Hover Preview</div>
+                    <div class="settings-description">Show pixel placement preview</div>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="hover-preview-toggle" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            
+            <div class="settings-option">
+                <div>
+                    <div class="settings-label">Pixel Sounds</div>
+                    <div class="settings-description">Play sound effects</div>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="sound-toggle">
+                    <span class="slider"></span>
+                </label>
             </div>
         </div>
     </div>
 
-    <!-- Main Content -->
     <div class="main-content">
         <div class="header">
             <a href="#" class="logo">
-                <div class="logo-icon"><i class="fas fa-globe-americas"></i></div>
-                <div class="logo-text">Astro Places</div>
+                <div class="logo-icon">Astro</div>
+                <div class="logo-text">Places</div>
             </a>
-            <div class="header-controls">
-                <div id="cooldown" class="cooldown-ready">
-                    <i class="fas fa-check-circle"></i>
-                    <span>Ready to place</span>
+        </div>
+        
+        <div class="container">
+            <div class="control-group">
+                <div id="cooldown">Ready to place a pixel!</div>
+                <div id="coordinates">
+                    <i class="fas fa-crosshairs"></i>
+                    <span>Hover over canvas</span>
                 </div>
-                <div id="coordinates">Hover over canvas</div>
             </div>
-        </div>
-        
-        <div id="canvas-container">
-            <canvas id="place-canvas" width="100" height="100"></canvas>
-            <div class="hover-pixel" id="hover-pixel"></div>
-            <div class="protected-area" id="protected-area" style="display: none;">
-                <div class="protected-area-label">Protected Area</div>
+            
+            <div id="canvas-container">
+                <canvas id="place-canvas" width="100" height="100"></canvas>
+                <div class="hover-pixel" id="hover-pixel"></div>
+                <div class="pixel-info" id="pixel-info"></div>
             </div>
-        </div>
-        
-        <div class="color-picker-container">
-            <div class="color-picker" id="color-picker">
-                <!-- Color options will be inserted here -->
+            
+            <div class="color-picker-container">
+                <div class="color-picker" id="color-picker"></div>
+                <input type="color" class="custom-color-input" id="custom-color-input" value="#ff4500" title="Custom color">
+                <div class="eraser-toggle" id="eraser-toggle">
+                    <i class="fas fa-eraser eraser-icon"></i>
+                    <span>Eraser</span>
+                </div>
             </div>
-        </div>
-        
-        <div class="controls-container">
+            
             <div class="controls">
                 <div class="control-group">
-                    <div class="control-group-row">
-                        <button id="zoom-out" class="btn btn-sm btn-outline" title="Zoom Out">
+                    <div id="zoom-controls">
+                        <button id="zoom-out" class="icon-button" title="Zoom Out">
                             <i class="fas fa-search-minus"></i>
                         </button>
-                        <button id="zoom-reset" class="btn btn-sm btn-outline" title="Reset Zoom">
+                        <button id="zoom-reset" title="Reset View">
                             <i class="fas fa-expand"></i>
+                            <span>Reset View</span>
                         </button>
-                        <button id="zoom-in" class="btn btn-sm btn-outline" title="Zoom In">
+                        <button id="zoom-in" class="icon-button" title="Zoom In">
                             <i class="fas fa-search-plus"></i>
                         </button>
-                        <button id="move-center" class="btn btn-sm btn-outline" title="Center Canvas">
-                            <i class="fas fa-crosshairs"></i>
-                        </button>
                     </div>
-                    <div class="control-group-row">
-                        <button id="timelapse-button" class="btn btn-outline">
-                            <i class="fas fa-film"></i> View Timelapse
-                        </button>
-                        <button id="help-button" class="btn btn-outline">
-                            <i class="fas fa-question-circle"></i> Help
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="stats-container">
-            <div class="stat-card">
-                <div class="stat-value" id="user-count">0</div>
-                <div class="stat-label">Users Online</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="pixel-count">0</div>
-                <div class="stat-label">Total Pixels</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="canvas-size">0×0</div>
-                <div class="stat-label">Canvas Size</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="pixel-rate">0/s</div>
-                <div class="stat-label">Pixel Rate</div>
-            </div>
-        </div>
-        
-        <div class="history-viewer">
-            <div class="history-card">
-                <div class="card-header">
-                    <div class="card-title">
-                        <i class="fas fa-history"></i>
-                        <span>Recent Activity</span>
-                    </div>
-                    <button id="refresh-history" class="btn btn-sm btn-outline" title="Refresh">
-                        <i class="fas fa-sync-alt"></i>
+                    <button id="timelapse-button">
+                        <i class="fas fa-film"></i>
+                        <span>View Timelapse</span>
+                    </button>
+                    <button id="save-image-button" class="secondary">
+                        <i class="fas fa-download"></i>
+                        <span>Save Image</span>
                     </button>
                 </div>
+            </div>
+            
+            <div class="stats-container">
+                <div class="stat-item">
+                    <div class="stat-value" id="user-count">0</div>
+                    <div class="stat-label">Users Online</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="pixel-count">0</div>
+                    <div class="stat-label">Pixels Placed</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="your-pixels">0</div>
+                    <div class="stat-label">Your Pixels</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="canvas-size">100x100</div>
+                    <div class="stat-label">Canvas Size</div>
+                </div>
+            </div>
+            
+            <div class="history-viewer">
+                <div class="history-title">
+                    <i class="fas fa-history"></i>
+                    Recent Activity
+                </div>
                 <div class="history-container" id="history-container">
-                    <!-- History items will be inserted here -->
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="fas fa-spinner loading-spinner"></i>
+                        </div>
+                        <div class="empty-state-text">Loading recent activity...</div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Right Sidebar -->
     <div class="sidebar">
         <div class="sidebar-header">
-            <span>Community Chat</span>
-            <i class="fas fa-comments"></i>
+            <h3 class="sidebar-title">Community</h3>
+            <button class="sidebar-toggle" id="right-sidebar-toggle">
+                <i class="fas fa-chevron-right"></i>
+            </button>
         </div>
-        <div class="sidebar-content">
-            <div class="discord-widget">
-                <iframe src="https://discord.com/widget?id=1367209579460562964&theme=dark" 
-                        width="100%" 
-                        height="100%" 
-                        allowtransparency="true" 
-                        frameborder="0" 
-                        sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts">
-                </iframe>
+        
+        <div class="discord-widget">
+            <iframe src="https://discord.com/widget?id=1367209579460562964&theme=dark" 
+                    width="100%" 
+                    height="100%" 
+                    allowtransparency="true" 
+                    frameborder="0" 
+                    sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"></iframe>
+        </div>
+        
+        <div class="leaderboard" style="margin-top: 1.5rem;">
+            <div class="leaderboard-title">
+                <i class="fas fa-fire"></i>
+                Most Active Today
+            </div>
+            <div class="leaderboard-container" id="daily-leaderboard-container">
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-spinner loading-spinner"></i>
+                    </div>
+                    <div class="empty-state-text">Loading daily stats...</div>
+                </div>
             </div>
         </div>
     </div>
     
-    <!-- Notification -->
-    <div id="notification"></div>
-
-    <!-- Username Modal -->
-    <div class="modal" id="username-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title">Welcome to Astro Places!</div>
-                <button class="modal-close">&times;</button>
-            </div>
-            <form id="username-form">
-                <div class="form-group">
-                    <label for="username-input" class="form-label">Choose your username</label>
-                    <input type="text" 
-                           class="form-input" 
-                           id="username-input" 
-                           placeholder="Enter username (3-16 characters)" 
-                           minlength="3" 
-                           maxlength="16"
-                           required>
-                    <small class="text-muted">This will be visible to other players</small>
-                </div>
-                <div class="form-actions">
-                    <button type="submit" class="btn" id="username-submit">
-                        <i class="fas fa-paint-brush"></i> Start Placing
-                    </button>
-                </div>
-            </form>
-        </div>
+    <div id="notification" class="notification-success">
+        <i class="fas fa-check-circle notification-icon"></i>
+        <div class="notification-content">Pixel placed successfully!</div>
+        <button class="notification-close">
+            <i class="fas fa-times"></i>
+        </button>
     </div>
 
-    <!-- Timelapse Modal -->
-    <div class="modal" id="timelapse-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title">Canvas Timelapse</div>
-                <button class="modal-close">&times;</button>
-            </div>
-            <div class="timelapse-container">
-                <canvas id="timelapse-canvas"></canvas>
-                <div class="timelapse-controls">
-                    <input type="range" 
-                           min="0" 
-                           max="100" 
-                           value="0" 
-                           class="timelapse-slider" 
-                           id="timelapse-slider">
-                    <div class="timelapse-buttons">
-                        <button id="timelapse-play" class="btn btn-sm">
-                            <i class="fas fa-play"></i> Play
-                        </button>
-                        <button id="timelapse-pause" class="btn btn-sm btn-outline">
-                            <i class="fas fa-pause"></i> Pause
-                        </button>
-                    </div>
-                </div>
-            </div>
+    <div class="username-modal" id="username-modal">
+        <div class="username-box">
+            <div class="username-title">Welcome to Astro Places</div>
+            <input type="text" class="username-input" id="username-input" placeholder="Enter your username" maxlength="16">
+            <button class="username-submit" id="username-submit">
+                <i class="fas fa-paint-brush"></i>
+                <span>Start Placing</span>
+            </button>
         </div>
     </div>
-
-    <!-- Help Modal -->
-    <div class="modal" id="help-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title">Help & Instructions</div>
-                <button class="modal-close">&times;</button>
+    
+    <div class="timelapse-container" id="timelapse-container">
+        <div class="timelapse-content">
+            <div class="timelapse-header">
+                <h2 class="timelapse-title">
+                    <i class="fas fa-film"></i>
+                    Canvas Timelapse
+                </h2>
+                <button class="timelapse-close" id="timelapse-close">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
-            <div class="form-group">
-                <h3>How to Play</h3>
-                <p>Welcome to Astro Places, a collaborative pixel art canvas!</p>
-                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
-                    <li>Click on the canvas to place a pixel with your selected color</li>
-                    <li>Choose colors from the palette at the bottom</li>
-                    <li>White color erases pixels</li>
-                    <li>There's a cooldown between placing pixels</li>
-                    <li>The central 50×50 area is protected and cannot be modified</li>
-                    <li>Work together with others to create amazing artwork!</li>
-                </ul>
-                
-                <h3 style="margin-top: 1.5rem;">Controls</h3>
-                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
-                    <li><strong>Zoom:</strong> Use + and - buttons or mouse wheel</li>
-                    <li><strong>Pan:</strong> Click and drag the canvas</li>
-                    <li><strong>Center:</strong> Click the crosshair button</li>
-                    <li><strong>Timelapse:</strong> View the canvas evolution over time</li>
-                </ul>
-                
-                <h3 style="margin-top: 1.5rem;">Community</h3>
-                <p>Join our Discord community to coordinate with other players, share templates, and discuss artwork ideas!</p>
-                
-                <div class="form-actions" style="margin-top: 2rem;">
-                    <button class="btn" id="help-close">
-                        <i class="fas fa-check"></i> Got it!
-                    </button>
-                </div>
+            
+            <div class="timelapse-controls">
+                <button id="timelapse-play" class="secondary">
+                    <i class="fas fa-play"></i>
+                    <span>Play</span>
+                </button>
+                <button id="timelapse-pause" class="secondary" disabled>
+                    <i class="fas fa-pause"></i>
+                    <span>Pause</span>
+                </button>
+                <button id="timelapse-export" class="secondary">
+                    <i class="fas fa-download"></i>
+                    <span>Export</span>
+                </button>
+            </div>
+            
+            <input type="range" class="timelapse-slider" id="timelapse-slider" min="0" max="100" value="0">
+            
+            <div class="timelapse-canvas-container">
+                <canvas id="timelapse-canvas" width="500" height="500"></canvas>
+            </div>
+            
+            <div class="timelapse-info">
+                <div id="timelapse-time">Time: 00:00</div>
+                <div id="timelapse-frame">Frame: 0/0</div>
             </div>
         </div>
     </div>
+    
+    <div class="context-menu" id="context-menu">
+        <div class="context-menu-item" id="copy-coords">
+            <i class="fas fa-copy"></i>
+            <span>Copy Coordinates</span>
+        </div>
+        <div class="context-menu-item" id="view-pixel-info">
+            <i class="fas fa-info-circle"></i>
+            <span>Pixel Info</span>
+        </div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item" id="jump-to-pixel">
+            <i class="fas fa-location-arrow"></i>
+            <span>Jump to Pixel</span>
+        </div>
+    </div>
+
+    <audio id="place-sound" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-positive-interface-beep-221.mp3" type="audio/mpeg">
+    </audio>
+    
+    <audio id="error-sound" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-warning-alarm-688.mp3" type="audio/mpeg">
+    </audio>
 
     <script type="module">
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { 
-            getDatabase, 
-            ref, 
-            onValue, 
-            set, 
-            get, 
-            push, 
-            remove, 
-            update,
-            query,
-            limitToLast,
-            orderByChild
-        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-        
-        // Firebase configuration
+        import { getDatabase, ref, onValue, set, get, push, remove, update, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
+       
         const firebaseConfig = {
             apiKey: "AIzaSyCpOUr78CAyGatrQdVOw6yf8EK4OvtoMoo",
             authDomain: "astro-places-1aec2.firebaseapp.com",
@@ -1320,17 +1620,29 @@
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+        const analytics = getAnalytics(app);
+
+        // Log app open event
+        logEvent(analytics, 'app_open');
 
         // Utility functions
         function throttle(func, limit) {
-            let inThrottle;
+            let lastFunc;
+            let lastRan;
             return function() {
-                const args = arguments;
                 const context = this;
-                if (!inThrottle) {
+                const args = arguments;
+                if (!lastRan) {
                     func.apply(context, args);
-                    inThrottle = true;
-                    setTimeout(() => inThrottle = false, limit);
+                    lastRan = Date.now();
+                } else {
+                    clearTimeout(lastFunc);
+                    lastFunc = setTimeout(function() {
+                        if ((Date.now() - lastRan) >= limit) {
+                            func.apply(context, args);
+                            lastRan = Date.now();
+                        }
+                    }, limit - (Date.now() - lastRan));
                 }
             };
         }
@@ -1351,38 +1663,44 @@
             };
         }
 
-        function hexToRgb(hex) {
-            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-            return result ? {
-                r: parseInt(result[1], 16),
-                g: parseInt(result[2], 16),
-                b: parseInt(result[3], 16)
-            } : null;
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
 
-        function rgbToHex(r, g, b) {
-            return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+        function formatDate(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+        }
+
+        function hexToRgb(hex) {
+            // Remove # if present
+            hex = hex.replace('#', '');
+            
+            // Parse r, g, b values
+            const r = parseInt(hex.substring(0, 2), 16);
+            const g = parseInt(hex.substring(2, 4), 16);
+            const b = parseInt(hex.substring(4, 6), 16);
+            
+            return { r, g, b };
         }
 
         function getContrastColor(hexColor) {
+            // Convert hex to RGB
             const rgb = hexToRgb(hexColor);
-            if (!rgb) return '#000000';
             
             // Calculate luminance
             const luminance = (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) / 255;
+            
+            // Return black for light colors, white for dark colors
             return luminance > 0.5 ? '#000000' : '#FFFFFF';
         }
 
         // Canvas setup
         const canvas = document.getElementById('place-canvas');
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        let canvasSize = 1000; // Will be updated from Firebase
-        const basePixelSize = 3; // Base size of each pixel
-        
-        // Protected area setup
-        const protectedAreaSize = 50;
-        let protectedAreaStart = 0;
-        let protectedAreaEnd = 0;
+        let canvasSize = 100; // Default size (will be updated from Firebase)
+        const pixelSize = 4; // Size of each pixel for rendering
         
         // Current view properties
         let zoom = 1;
@@ -1391,9 +1709,11 @@
         let isDragging = false;
         let lastMouseX = 0;
         let lastMouseY = 0;
+        let currentHoverX = -1;
+        let currentHoverY = -1;
         
         // User interaction
-        let selectedColor = '#000000';
+        let selectedColor = '#ff4500';
         let lastPlacedTime = 0;
         const cooldownTime = 5000; // 5 seconds cooldown
         let userId = '';
@@ -1401,14 +1721,11 @@
         let userPresenceRef = null;
         let myPixelCount = 0;
         let totalPixelCount = 0;
-        let pixelRate = 0;
-        let lastPixelCount = 0;
-        let lastRateCheck = Date.now();
         
         // Hover preview
         const hoverPixel = document.getElementById('hover-pixel');
         
-        // Color palette with names
+        // Color palette
         const colors = [
             { hex: '#FFFFFF', name: 'White' },
             { hex: '#D4D7D9', name: 'Light Gray' },
@@ -1425,10 +1742,10 @@
             { hex: '#3690EA', name: 'Blue' },
             { hex: '#51E9F4', name: 'Cyan' },
             { hex: '#811E9F', name: 'Purple' },
-            { hex: '#B44AC0', name: 'Magenta' },
+            { hex: '#B44AC0', name: 'Light Purple' },
             { hex: '#FF99AA', name: 'Pink' },
-            { hex: '#6A5CFF', name: 'Lavender' },
-            { hex: '#E4ABFF', name: 'Light Purple' },
+            { hex: '#6A5CFF', name: 'Periwinkle' },
+            { hex: '#E4ABFF', name: 'Lavender' },
             { hex: '#BE0039', name: 'Dark Red' },
             { hex: '#FF3881', name: 'Hot Pink' },
             { hex: '#493AC1', name: 'Indigo' },
@@ -1461,6 +1778,11 @@
             { hex: '#ADFF2F', name: 'Green Yellow' }
         ];
 
+        // Track user pixel counts for leaderboard
+        const userPixelCounts = {};
+        const usernames = {};
+        const dailyPixelCounts = {};
+
         // Create color picker with tooltips
         const colorPicker = document.getElementById('color-picker');
         colors.forEach(color => {
@@ -1468,10 +1790,11 @@
             colorOption.className = 'color-option';
             colorOption.style.backgroundColor = color.hex;
             colorOption.dataset.color = color.hex;
+            colorOption.dataset.name = color.name;
             
-            // Add tooltip
-            const tooltip = document.createElement('span');
-            tooltip.className = 'color-tooltip';
+            // Create tooltip
+            const tooltip = document.createElement('div');
+            tooltip.className = 'tooltip';
             tooltip.textContent = color.name;
             colorOption.appendChild(tooltip);
             
@@ -1484,40 +1807,83 @@
                 if (hoverPixel.style.display === 'block') {
                     hoverPixel.style.backgroundColor = color.hex;
                 }
+                
+                // Disable eraser if it was active
+                document.getElementById('eraser-toggle').classList.remove('active');
+                
+                // Play sound if enabled
+                playSound('click');
             });
-            
             colorPicker.appendChild(colorOption);
         });
         
         // Select the first color by default
         document.querySelector('.color-option').classList.add('selected');
 
+        // Custom color input
+        const customColorInput = document.getElementById('custom-color-input');
+        customColorInput.addEventListener('input', (e) => {
+            selectedColor = e.target.value;
+            
+            // Update selected color in picker
+            document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
+            
+            // Disable eraser if it was active
+            document.getElementById('eraser-toggle').classList.remove('active');
+            
+            // Update hover preview
+            if (hoverPixel.style.display === 'block') {
+                hoverPixel.style.backgroundColor = selectedColor;
+            }
+        });
+
+        // Eraser toggle
+        const eraserToggle = document.getElementById('eraser-toggle');
+        eraserToggle.addEventListener('click', () => {
+            eraserToggle.classList.toggle('active');
+            
+            if (eraserToggle.classList.contains('active')) {
+                selectedColor = '#FFFFFF'; // White is our "eraser"
+                
+                // Deselect any color
+                document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
+                
+                // Update hover preview
+                if (hoverPixel.style.display === 'block') {
+                    hoverPixel.style.backgroundColor = '#FFFFFF';
+                }
+            } else {
+                // Reselect the previously selected color
+                const selected = document.querySelector('.color-option.selected');
+                if (selected) {
+                    selectedColor = selected.dataset.color;
+                    
+                    // Update hover preview
+                    if (hoverPixel.style.display === 'block') {
+                        hoverPixel.style.backgroundColor = selectedColor;
+                    }
+                }
+            }
+            
+            // Play sound if enabled
+            playSound('click');
+        });
+
         // Resize canvas element based on zoom level
         function resizeCanvas() {
-            const container = document.getElementById('canvas-container');
-            const pixelSize = basePixelSize * zoom;
-            
             canvas.width = canvasSize;
             canvas.height = canvasSize;
-            canvas.style.width = (canvasSize * pixelSize) + 'px';
-            canvas.style.height = (canvasSize * pixelSize) + 'px';
-            container.style.width = (canvasSize * pixelSize) + 'px';
-            container.style.height = (canvasSize * pixelSize) + 'px';
+            canvas.style.width = (canvasSize * pixelSize * zoom) + 'px';
+            canvas.style.height = (canvasSize * pixelSize * zoom) + 'px';
+            document.getElementById('canvas-container').style.width = (canvasSize * pixelSize * zoom) + 'px';
+            document.getElementById('canvas-container').style.height = (canvasSize * pixelSize * zoom) + 'px';
             
             // Update hover pixel size
-            hoverPixel.style.width = pixelSize + 'px';
-            hoverPixel.style.height = pixelSize + 'px';
+            hoverPixel.style.width = (pixelSize * zoom) + 'px';
+            hoverPixel.style.height = (pixelSize * zoom) + 'px';
             
-            // Update protected area position and size
-            const protectedArea = document.getElementById('protected-area');
-            protectedAreaStart = Math.floor((canvasSize - protectedAreaSize) / 2);
-            protectedAreaEnd = protectedAreaStart + protectedAreaSize;
-            
-            protectedArea.style.width = (protectedAreaSize * pixelSize) + 'px';
-            protectedArea.style.height = (protectedAreaSize * pixelSize) + 'px';
-            protectedArea.style.left = (protectedAreaStart * pixelSize) + 'px';
-            protectedArea.style.top = (protectedAreaStart * pixelSize) + 'px';
-            protectedArea.style.display = 'block';
+            // Update canvas size display
+            document.getElementById('canvas-size').textContent = `${canvasSize}x${canvasSize}`;
             
             // Mark canvas for redraw
             canvas.needsRedraw = true;
@@ -1526,6 +1892,7 @@
 
         // Optimized canvas drawing with buffering and requestAnimationFrame
         function drawCanvas() {
+            // Only redraw when necessary
             if (!canvas.needsRedraw) return;
             canvas.needsRedraw = false;
             
@@ -1538,11 +1905,25 @@
                 canvas.backgroundDrawn = false;
             }
             
-            // Draw grid background only once
-            if (!canvas.backgroundDrawn) {
+            // Draw grid background only once if enabled
+            const gridEnabled = document.getElementById('grid-toggle').checked;
+            if (!canvas.backgroundDrawn || canvas.gridEnabled !== gridEnabled) {
                 canvas.bufferCtx.fillStyle = '#FFFFFF';
                 canvas.bufferCtx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                if (gridEnabled) {
+                    canvas.bufferCtx.fillStyle = '#F0F0F0';
+                    for (let x = 0; x < canvas.width; x += 10) {
+                        for (let y = 0; y < canvas.height; y += 10) {
+                            if ((x + y) % 20 === 0) {
+                                canvas.bufferCtx.fillRect(x, y, 1, 1);
+                            }
+                        }
+                    }
+                }
+                
                 canvas.backgroundDrawn = true;
+                canvas.gridEnabled = gridEnabled;
             }
             
             // Get pixels from Firebase
@@ -1554,9 +1935,20 @@
                     // Clear only the buffer
                     canvas.bufferCtx.clearRect(0, 0, canvas.width, canvas.height);
                     
-                    // Draw white background
+                    // Draw background
                     canvas.bufferCtx.fillStyle = '#FFFFFF';
                     canvas.bufferCtx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    if (gridEnabled) {
+                        canvas.bufferCtx.fillStyle = '#F0F0F0';
+                        for (let x = 0; x < canvas.width; x += 10) {
+                            for (let y = 0; y < canvas.height; y += 10) {
+                                if ((x + y) % 20 === 0) {
+                                    canvas.bufferCtx.fillRect(x, y, 1, 1);
+                                }
+                            }
+                        }
+                    }
                     
                     totalPixelCount = 0;
                     myPixelCount = 0;
@@ -1595,6 +1987,11 @@
                                 if (userId === userId) {
                                     myPixelCount++;
                                 }
+                                
+                                // Track usernames
+                                if (pixelValue.username) {
+                                    usernames[userId] = pixelValue.username;
+                                }
                             }
                         }
                     }
@@ -1605,23 +2002,12 @@
                     // Update counters
                     document.getElementById('pixel-count').textContent = totalPixelCount.toLocaleString();
                     document.getElementById('your-pixels').textContent = myPixelCount.toLocaleString();
-                    document.getElementById('canvas-size').textContent = `${canvasSize}×${canvasSize}`;
-                    
-                    // Calculate pixel rate
-                    const now = Date.now();
-                    if (now - lastRateCheck > 1000) {
-                        const pixelsPlaced = totalPixelCount - lastPixelCount;
-                        pixelRate = pixelsPlaced / ((now - lastRateCheck) / 1000);
-                        lastPixelCount = totalPixelCount;
-                        lastRateCheck = now;
-                        
-                        document.getElementById('pixel-rate').textContent = `${Math.round(pixelRate * 10) / 10}/s`;
-                    }
                     
                     // Update leaderboard
                     updateLeaderboard();
                 });
             }, {
+                // Only retrieve the data once unless it changes
                 onlyOnce: false
             });
         }
@@ -1637,24 +2023,48 @@
 
             // Check cooldown
             if (now - lastPlacedTime < cooldownTime) {
-                showNotification(`Please wait ${Math.ceil((cooldownTime - (now - lastPlacedTime)) / 1000)} more seconds`, 'warning');
+                const remaining = Math.ceil((cooldownTime - (now - lastPlacedTime)) / 1000);
+                showNotification(`Please wait ${remaining} more seconds`, 'error');
+                playSound('error');
                 return;
             }
 
             // Ensure coordinates are within bounds
             if (x < 0 || x >= canvasSize || y < 0 || y >= canvasSize) {
-                showNotification('Cannot place pixel outside canvas', 'error');
-                return;
-            }
-
-            // Check if pixel is in protected area
-            if (x >= protectedAreaStart && x < protectedAreaEnd && 
-                y >= protectedAreaStart && y < protectedAreaEnd) {
-                showNotification('This area is protected and cannot be modified', 'error');
+                showNotification('Pixel is outside canvas bounds', 'error');
+                playSound('error');
                 return;
             }
 
             const pixelRef = ref(db, `pixels/${x},${y}`);
+            
+            // Get current pixel data to check if it's the same color
+            try {
+                const snapshot = await get(pixelRef);
+                const currentPixel = snapshot.val();
+                
+                // Check if pixel is already the same color
+                if (currentPixel && typeof currentPixel === 'object' && currentPixel.color) {
+                    if (currentPixel.color === selectedColor.replace('#', '')) {
+                        showNotification('Pixel is already this color', 'error');
+                        playSound('error');
+                        return;
+                    }
+                } else if (typeof currentPixel === 'string' && currentPixel === selectedColor.replace('#', '')) {
+                    showNotification('Pixel is already this color', 'error');
+                    playSound('error');
+                    return;
+                }
+                
+                // Also check if this user already placed this pixel recently
+                if (currentPixel && currentPixel.userId === userId && (now - currentPixel.timestamp < cooldownTime * 2)) {
+                    showNotification('You recently placed this pixel', 'error');
+                    playSound('error');
+                    return;
+                }
+            } catch (error) {
+                console.error("Error checking pixel:", error);
+            }
 
             if (selectedColor === '#FFFFFF') {
                 // White color will delete the pixel
@@ -1664,15 +2074,24 @@
                     updateCooldown();
                     addToHistory(x, y, 'erased');
                     showNotification('Pixel erased successfully!', 'success');
+                    playSound('place');
+                    
+                    // Log pixel erase event
+                    logEvent(analytics, 'pixel_erased', {
+                        x: x,
+                        y: y,
+                        user_id: userId
+                    });
                 } catch (error) {
                     console.error("Error erasing pixel: ", error);
-                    showNotification('Error erasing pixel. Try again.', 'error');
+                    showNotification('Error erasing pixel', 'error');
+                    playSound('error');
                 }
             } else {
                 // Place the pixel in Firebase
                 try {
                     await set(pixelRef, {
-                        color: selectedColor,
+                        color: selectedColor.replace('#', ''),
                         userId: userId,
                         username: username,
                         timestamp: now
@@ -1681,9 +2100,22 @@
                     updateCooldown();
                     addToHistory(x, y, selectedColor);
                     showNotification('Pixel placed successfully!', 'success');
+                    playSound('place');
+                    
+                    // Log pixel place event
+                    logEvent(analytics, 'pixel_placed', {
+                        x: x,
+                        y: y,
+                        color: selectedColor,
+                        user_id: userId
+                    });
+                    
+                    // Update daily count
+                    updateDailyPixelCount();
                 } catch (error) {
                     console.error("Error placing pixel: ", error);
-                    showNotification('Error placing pixel. Try again.', 'error');
+                    showNotification('Error placing pixel', 'error');
+                    playSound('error');
                 }
             }
             
@@ -1691,24 +2123,32 @@
             canvas.needsRedraw = true;
         }
 
+        // Update daily pixel count for leaderboard
+        function updateDailyPixelCount() {
+            if (!userId) return;
+            
+            const today = new Date().toISOString().split('T')[0];
+            const dailyRef = ref(db, `dailyCounts/${today}/${userId}`);
+            
+            get(dailyRef).then((snapshot) => {
+                const currentCount = snapshot.val() || 0;
+                set(dailyRef, currentCount + 1);
+            });
+        }
+
         // Update cooldown timer with circle animation
         function updateCooldown() {
             const cooldownElement = document.getElementById('cooldown');
             const now = Date.now();
-            const timeLeft = cooldownTime - (now - lastPlacedTime);
             
-            if (timeLeft > 0) {
-                const remainingTime = Math.ceil(timeLeft / 1000);
-                const percentage = (timeLeft / cooldownTime) * 100;
+            if (now - lastPlacedTime < cooldownTime) {
+                const remainingTime = Math.ceil((cooldownTime - (now - lastPlacedTime)) / 1000);
+                const percentage = ((cooldownTime - (now - lastPlacedTime)) / cooldownTime) * 100;
                 
                 // Create timer circle if needed
                 if (!document.querySelector('.timer-circle')) {
                     cooldownElement.innerHTML = '';
-                    cooldownElement.className = 'cooldown-active';
-                    
-                    const timerIcon = document.createElement('i');
-                    timerIcon.className = 'fas fa-clock';
-                    cooldownElement.appendChild(timerIcon);
+                    cooldownElement.classList.add('cooldown-active');
                     
                     const timerCircle = document.createElement('div');
                     timerCircle.className = 'timer-circle';
@@ -1740,23 +2180,53 @@
                 
                 setTimeout(updateCooldown, 50);
             } else {
-                cooldownElement.className = 'cooldown-ready';
-                cooldownElement.innerHTML = `
-                    <i class="fas fa-check-circle"></i>
-                    <span>Ready to place</span>
-                `;
+                cooldownElement.classList.remove('cooldown-active');
+                cooldownElement.innerHTML = 'Ready to place a pixel!';
             }
         }
 
         // Show notification
-        function showNotification(message, type = 'info') {
+        function showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
             notification.textContent = message;
-            notification.className = `notification-${type} show`;
+            notification.className = `notification-${type}`;
             
-            setTimeout(() => {
-                notification.classList.remove('show');
+            // Update icon based on type
+            const icon = notification.querySelector('.notification-icon');
+            if (type === 'success') {
+                icon.className = 'fas fa-check-circle notification-icon';
+            } else if (type === 'error') {
+                icon.className = 'fas fa-exclamation-circle notification-icon';
+            }
+            
+            // Show notification
+            notification.style.display = 'flex';
+            
+            // Auto-hide after 3 seconds
+            clearTimeout(notification.hideTimeout);
+            notification.hideTimeout = setTimeout(() => {
+                notification.style.display = 'none';
             }, 3000);
+        }
+
+        // Close notification manually
+        document.querySelector('.notification-close').addEventListener('click', () => {
+            const notification = document.getElementById('notification');
+            notification.style.display = 'none';
+            clearTimeout(notification.hideTimeout);
+        });
+
+        // Play sound effects
+        function playSound(type) {
+            if (!document.getElementById('sound-toggle').checked) return;
+            
+            try {
+                const sound = type === 'place' ? document.getElementById('place-sound') : document.getElementById('error-sound');
+                sound.currentTime = 0;
+                sound.play();
+            } catch (e) {
+                console.error("Error playing sound:", e);
+            }
         }
 
         // Add to history log
@@ -1771,11 +2241,94 @@
                 username: username,
                 timestamp: Date.now()
             });
+            
+            // Also add to local history for immediate feedback
+            updateHistoryDisplay({
+                x: x,
+                y: y,
+                color: color,
+                userId: userId,
+                username: username,
+                timestamp: Date.now()
+            }, true);
         }
 
-        // Track user pixel counts for leaderboard
-        const userPixelCounts = {};
-        const usernames = {};
+        // Update history display
+        function updateHistoryDisplay(historyItem, prepend = false) {
+            const historyContainer = document.getElementById('history-container');
+            
+            // Remove empty state if present
+            const emptyState = historyContainer.querySelector('.empty-state');
+            if (emptyState) {
+                emptyState.remove();
+            }
+            
+            const historyElement = document.createElement('div');
+            historyElement.className = 'history-item';
+            
+            const colorDisplay = color === 'erased' ? '#FFFFFF' : color;
+            const actionText = color === 'erased' ? 'erased a pixel at' : 'placed a pixel at';
+            
+            historyElement.innerHTML = `
+                <div class="history-color" style="background-color: ${colorDisplay};"></div>
+                <span class="history-username">${historyItem.username || 'Anonymous'}</span>
+                <span>${actionText}</span>
+                <span class="history-coords">(${historyItem.x}, ${historyItem.y})</span>
+                <span class="history-time">${formatTime(historyItem.timestamp)}</span>
+            `;
+            
+            if (prepend && historyContainer.firstChild) {
+                historyContainer.insertBefore(historyElement, historyContainer.firstChild);
+            } else {
+                historyContainer.appendChild(historyElement);
+            }
+            
+            // Limit to 50 items
+            if (historyContainer.children.length > 50) {
+                historyContainer.removeChild(historyContainer.lastChild);
+            }
+            
+            // Scroll to top if prepended
+            if (prepend) {
+                historyContainer.scrollLeft = 0;
+            }
+        }
+
+        // Load history from Firebase
+        function loadHistory() {
+            const historyRef = query(ref(db, 'history'), orderByChild('timestamp'), limitToLast(20));
+            
+            onValue(historyRef, (snapshot) => {
+                const historyData = snapshot.val() || {};
+                const historyContainer = document.getElementById('history-container');
+                
+                // Clear existing items except empty state
+                const emptyState = historyContainer.querySelector('.empty-state');
+                historyContainer.innerHTML = '';
+                if (emptyState) {
+                    historyContainer.appendChild(emptyState);
+                }
+                
+                // Convert to array and sort by timestamp
+                const historyArray = Object.values(historyData).sort((a, b) => b.timestamp - a.timestamp);
+                
+                if (historyArray.length === 0) {
+                    const emptyState = document.createElement('div');
+                    emptyState.className = 'empty-state';
+                    emptyState.innerHTML = `
+                        <div class="empty-state-icon">
+                            <i class="fas fa-history"></i>
+                        </div>
+                        <div class="empty-state-text">No recent activity yet</div>
+                    `;
+                    historyContainer.appendChild(emptyState);
+                } else {
+                    historyArray.forEach(item => {
+                        updateHistoryDisplay(item);
+                    });
+                }
+            });
+        }
 
         // Update the leaderboard display
         function updateLeaderboard() {
@@ -1794,114 +2347,106 @@
             // Create leaderboard HTML
             const fragment = document.createDocumentFragment();
             
+            // Add header
+            const header = document.createElement('div');
+            header.className = 'leaderboard-header';
+            header.innerHTML = `
+                <span>User</span>
+                <span>Pixels</span>
+            `;
+            fragment.appendChild(header);
+            
+            // Add users
+            sortedUsers.forEach((user, index) => {
+                const item = document.createElement('div');
+                item.className = 'leaderboard-item';
+                
+                const positionClass = index < 3 ? `position-${index + 1}` : '';
+                
+                item.innerHTML = `
+                    <div style="display: flex; align-items: center;">
+                        <span class="leaderboard-position ${positionClass}">${index + 1}</span>
+                        <span class="leaderboard-user">${user.username}</span>
+                    </div>
+                    <span class="leaderboard-count">${user.count.toLocaleString()}</span>
+                `;
+                fragment.appendChild(item);
+            });
+            
             if (sortedUsers.length === 0) {
                 const emptyState = document.createElement('div');
                 emptyState.className = 'empty-state';
                 emptyState.innerHTML = `
-                    <i class="fas fa-user-friends"></i>
-                    <p>No activity yet</p>
+                    <div class="empty-state-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="empty-state-text">No leaderboard data yet</div>
                 `;
                 fragment.appendChild(emptyState);
-            } else {
-                sortedUsers.forEach((user, index) => {
-                    const item = document.createElement('div');
-                    item.className = 'leaderboard-item';
-                    
-                    const userDiv = document.createElement('div');
-                    userDiv.className = 'leaderboard-user';
-                    
-                    const position = document.createElement('div');
-                    position.className = 'leaderboard-position';
-                    position.textContent = index + 1;
-                    
-                    const avatar = document.createElement('div');
-                    avatar.className = 'leaderboard-avatar';
-                    avatar.textContent = user.username.charAt(0).toUpperCase();
-                    
-                    const name = document.createElement('div');
-                    name.className = 'leaderboard-name';
-                    name.textContent = user.username;
-                    
-                    userDiv.appendChild(position);
-                    userDiv.appendChild(avatar);
-                    userDiv.appendChild(name);
-                    
-                    const count = document.createElement('div');
-                    count.className = 'leaderboard-count';
-                    count.textContent = user.count.toLocaleString();
-                    
-                    item.appendChild(userDiv);
-                    item.appendChild(count);
-                    
-                    fragment.appendChild(item);
-                });
             }
             
             leaderboardContainer.innerHTML = '';
             leaderboardContainer.appendChild(fragment);
         }
 
-        // Load recent history
-        function loadRecentHistory() {
-            const historyRef = query(
-                ref(db, 'history'),
-                orderByChild('timestamp'),
-                limitToLast(10)
-            );
+        // Update daily leaderboard
+        function updateDailyLeaderboard() {
+            const today = new Date().toISOString().split('T')[0];
+            const dailyRef = ref(db, `dailyCounts/${today}`);
             
-            onValue(historyRef, (snapshot) => {
-                const historyData = snapshot.val() || {};
-                const historyItems = Object.values(historyData).reverse();
+            onValue(dailyRef, (snapshot) => {
+                const dailyData = snapshot.val() || {};
+                const dailyLeaderboard = document.getElementById('daily-leaderboard-container');
                 
-                const historyContainer = document.getElementById('history-container');
-                historyContainer.innerHTML = '';
+                // Convert to array and sort
+                const sortedDaily = Object.entries(dailyData)
+                    .map(([userId, count]) => ({
+                        userId,
+                        count,
+                        username: usernames[userId] || 'Anonymous'
+                    }))
+                    .sort((a, b) => b.count - a.count)
+                    .slice(0, 5); // Top 5 daily
                 
-                if (historyItems.length === 0) {
+                const fragment = document.createDocumentFragment();
+                
+                // Add header
+                const header = document.createElement('div');
+                header.className = 'leaderboard-header';
+                header.innerHTML = `
+                    <span>Today's Top</span>
+                    <span>Pixels</span>
+                `;
+                fragment.appendChild(header);
+                
+                // Add users
+                sortedDaily.forEach((user, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'leaderboard-item';
+                    
+                    item.innerHTML = `
+                        <div style="display: flex; align-items: center;">
+                            <span class="leaderboard-user">${user.username}</span>
+                        </div>
+                        <span class="leaderboard-count">${user.count}</span>
+                    `;
+                    fragment.appendChild(item);
+                });
+                
+                if (sortedDaily.length === 0) {
                     const emptyState = document.createElement('div');
                     emptyState.className = 'empty-state';
                     emptyState.innerHTML = `
-                        <i class="fas fa-history"></i>
-                        <p>No recent activity</p>
+                        <div class="empty-state-icon">
+                            <i class="fas fa-calendar-day"></i>
+                        </div>
+                        <div class="empty-state-text">No activity today yet</div>
                     `;
-                    historyContainer.appendChild(emptyState);
-                    return;
+                    fragment.appendChild(emptyState);
                 }
                 
-                historyItems.forEach(item => {
-                    const historyItem = document.createElement('div');
-                    historyItem.className = 'history-item';
-                    
-                    const header = document.createElement('div');
-                    header.className = 'history-item-header';
-                    
-                    const avatar = document.createElement('div');
-                    avatar.className = 'leaderboard-avatar';
-                    avatar.style.width = '20px';
-                    avatar.style.height = '20px';
-                    avatar.style.fontSize = '0.7rem';
-                    avatar.textContent = item.username?.charAt(0).toUpperCase() || '?';
-                    
-                    const user = document.createElement('div');
-                    user.className = 'history-user';
-                    user.textContent = item.username || 'Anonymous';
-                    
-                    header.appendChild(avatar);
-                    header.appendChild(user);
-                    
-                    const coords = document.createElement('div');
-                    coords.className = 'history-coords';
-                    coords.textContent = `(${item.x}, ${item.y})`;
-                    
-                    const color = document.createElement('div');
-                    color.className = 'history-color';
-                    color.style.backgroundColor = item.color === 'erased' ? '#FFFFFF' : item.color;
-                    
-                    historyItem.appendChild(header);
-                    historyItem.appendChild(coords);
-                    historyItem.appendChild(color);
-                    
-                    historyContainer.appendChild(historyItem);
-                });
+                dailyLeaderboard.innerHTML = '';
+                dailyLeaderboard.appendChild(fragment);
             });
         }
 
@@ -1914,7 +2459,13 @@
         function saveUserData() {
             localStorage.setItem('astroPlacesUser', JSON.stringify({
                 userId: userId,
-                username: username
+                username: username,
+                settings: {
+                    darkMode: document.getElementById('dark-mode-toggle').checked,
+                    gridVisible: document.getElementById('grid-toggle').checked,
+                    hoverPreview: document.getElementById('hover-preview-toggle').checked,
+                    soundEnabled: document.getElementById('sound-toggle').checked
+                }
             }));
         }
 
@@ -1923,7 +2474,8 @@
             const userData = localStorage.getItem('astroPlacesUser');
             if (userData) {
                 try {
-                    return JSON.parse(userData);
+                    const data = JSON.parse(userData);
+                    return data;
                 } catch (e) {
                     return null;
                 }
@@ -1945,15 +2497,11 @@
                 online: true,
                 username: username,
                 lastActive: Date.now(),
-                joinedAt: Date.now()
+                joinDate: Date.now()
             });
             
             // Update last active time periodically
-            const presenceInterval = setInterval(() => {
-                if (!userPresenceRef) {
-                    clearInterval(presenceInterval);
-                    return;
-                }
+            setInterval(() => {
                 update(userPresenceRef, {
                     lastActive: Date.now()
                 });
@@ -1994,7 +2542,7 @@
             document.getElementById('user-info').style.display = 'flex';
             document.getElementById('username-display').textContent = username;
             document.getElementById('user-avatar').textContent = username.charAt(0).toUpperCase();
-            document.getElementById('username-modal').classList.remove('active');
+            document.getElementById('username-modal').style.display = 'none';
             
             // Save user data
             saveUserData();
@@ -2002,21 +2550,26 @@
             // Initialize user presence
             setupUserPresence();
             
-            // Load canvas size from Firebase
+            // Load canvas
             const configRef = ref(db, 'config/canvasSize');
-            onValue(configRef, (snapshot) => {
+            get(configRef).then((snapshot) => {
                 if (snapshot.exists()) {
                     canvasSize = snapshot.val();
-                    resizeCanvas();
-                    drawCanvas();
                 }
+                resizeCanvas();
+                drawCanvas();
             });
             
-            // Load recent history
-            loadRecentHistory();
+            // Load history and leaderboards
+            loadHistory();
+            updateLeaderboard();
+            updateDailyLeaderboard();
             
-            // Show welcome message
-            showNotification(`Welcome, ${username}! Start placing pixels now.`, 'success');
+            // Log login event
+            logEvent(analytics, 'login', {
+                user_id: userId,
+                username: username
+            });
         }
 
         // Canvas interaction events
@@ -2031,6 +2584,138 @@
             placePixel(x, y);
         });
 
+        // Right-click context menu
+        canvas.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            
+            const x = Math.floor((e.clientX - rect.left) * scaleX);
+            const y = Math.floor((e.clientY - rect.top) * scaleY);
+            
+            // Only show menu if coordinates are valid
+            if (x >= 0 && x < canvasSize && y >= 0 && y < canvasSize) {
+                const contextMenu = document.getElementById('context-menu');
+                contextMenu.style.display = 'block';
+                contextMenu.style.left = `${e.clientX}px`;
+                contextMenu.style.top = `${e.clientY}px`;
+                
+                // Store coordinates for menu actions
+                contextMenu.dataset.x = x;
+                contextMenu.dataset.y = y;
+            }
+        });
+
+        // Close context menu when clicking elsewhere
+        document.addEventListener('click', (e) => {
+            const contextMenu = document.getElementById('context-menu');
+            if (contextMenu.style.display === 'block' && !contextMenu.contains(e.target)) {
+                contextMenu.style.display = 'none';
+            }
+        });
+
+        // Context menu actions
+        document.getElementById('copy-coords').addEventListener('click', () => {
+            const contextMenu = document.getElementById('context-menu');
+            const coords = `(${contextMenu.dataset.x}, ${contextMenu.dataset.y})`;
+            navigator.clipboard.writeText(coords);
+            showNotification('Coordinates copied to clipboard', 'success');
+            contextMenu.style.display = 'none';
+        });
+
+        document.getElementById('view-pixel-info').addEventListener('click', () => {
+            const contextMenu = document.getElementById('context-menu');
+            const x = parseInt(contextMenu.dataset.x);
+            const y = parseInt(contextMenu.dataset.y);
+            showPixelInfo(x, y);
+            contextMenu.style.display = 'none';
+        });
+
+        document.getElementById('jump-to-pixel').addEventListener('click', () => {
+            const contextMenu = document.getElementById('context-menu');
+            const x = parseInt(contextMenu.dataset.x);
+            const y = parseInt(contextMenu.dataset.y);
+            
+            // Center view on this pixel
+            const container = document.getElementById('canvas-container');
+            const centerX = (x * pixelSize * zoom) - (container.clientWidth / 2);
+            const centerY = (y * pixelSize * zoom) - (container.clientHeight / 2);
+            
+            // Smooth scroll to center
+            container.scrollTo({
+                left: centerX,
+                top: centerY,
+                behavior: 'smooth'
+            });
+            
+            showNotification(`Jumped to pixel (${x}, ${y})`, 'success');
+            contextMenu.style.display = 'none';
+        });
+
+        // Show pixel info
+        async function showPixelInfo(x, y) {
+            const pixelInfo = document.getElementById('pixel-info');
+            const pixelRef = ref(db, `pixels/${x},${y}`);
+            
+            try {
+                const snapshot = await get(pixelRef);
+                const pixelData = snapshot.val();
+                
+                if (!pixelData) {
+                    pixelInfo.innerHTML = `
+                        <div class="pixel-info-header">
+                            <div class="pixel-color" style="background-color: #FFFFFF;"></div>
+                            <div class="pixel-coords">(${x}, ${y})</div>
+                        </div>
+                        <div>Empty pixel</div>
+                    `;
+                } else {
+                    const color = typeof pixelData === 'object' ? `#${pixelData.color}` : `#${pixelData}`;
+                    const username = pixelData.username || 'Anonymous';
+                    const timestamp = pixelData.timestamp ? formatTime(pixelData.timestamp) : 'Unknown';
+                    
+                    pixelInfo.innerHTML = `
+                        <div class="pixel-info-header">
+                            <div class="pixel-color" style="background-color: ${color};"></div>
+                            <div class="pixel-coords">(${x}, ${y})</div>
+                        </div>
+                        <div class="pixel-user">
+                            <div class="pixel-user-avatar">${username.charAt(0).toUpperCase()}</div>
+                            <div>${username}</div>
+                        </div>
+                        <div class="pixel-time">Placed at ${timestamp}</div>
+                    `;
+                }
+                
+                // Position near the pixel
+                const rect = canvas.getBoundingClientRect();
+                const pixelX = (x * pixelSize * zoom) + rect.left;
+                const pixelY = (y * pixelSize * zoom) + rect.top;
+                
+                pixelInfo.style.left = `${pixelX}px`;
+                pixelInfo.style.top = `${pixelY + (pixelSize * zoom)}px`;
+                pixelInfo.style.display = 'block';
+                
+                // Hide after 5 seconds or when clicking elsewhere
+                setTimeout(() => {
+                    pixelInfo.style.display = 'none';
+                }, 5000);
+            } catch (error) {
+                console.error("Error fetching pixel info:", error);
+                showNotification('Error loading pixel info', 'error');
+            }
+        }
+
+        // Hide pixel info when clicking elsewhere
+        document.addEventListener('click', (e) => {
+            const pixelInfo = document.getElementById('pixel-info');
+            if (pixelInfo.style.display === 'block' && !pixelInfo.contains(e.target)) {
+                pixelInfo.style.display = 'none';
+            }
+        });
+
         // Throttled hover effect
         canvas.addEventListener('mousemove', throttle((e) => {
             const rect = canvas.getBoundingClientRect();
@@ -2041,62 +2726,64 @@
             const y = Math.floor((e.clientY - rect.top) * scaleY);
             
             // Update coordinates display
-            document.getElementById('coordinates').textContent = `(${x}, ${y})`;
+            document.getElementById('coordinates').innerHTML = `
+                <i class="fas fa-crosshairs"></i>
+                <span>(${x}, ${y})</span>
+            `;
             
-            // Show hover preview
-            if (x >= 0 && x < canvasSize && y >= 0 && y < canvasSize) {
+            // Store current hover coordinates
+            currentHoverX = x;
+            currentHoverY = y;
+            
+            // Show hover preview if enabled
+            const hoverEnabled = document.getElementById('hover-preview-toggle').checked;
+            
+            if (hoverEnabled && x >= 0 && x < canvasSize && y >= 0 && y < canvasSize) {
                 hoverPixel.style.display = 'block';
-                hoverPixel.style.left = (x * basePixelSize * zoom) + 'px';
-                hoverPixel.style.top = (y * basePixelSize * zoom) + 'px';
+                hoverPixel.style.left = (x * pixelSize * zoom) + 'px';
+                hoverPixel.style.top = (y * pixelSize * zoom) + 'px';
                 hoverPixel.style.backgroundColor = selectedColor;
-                
-                // Change cursor style if in protected area
-                if (x >= protectedAreaStart && x < protectedAreaEnd && 
-                    y >= protectedAreaStart && y < protectedAreaEnd) {
-                    canvas.style.cursor = 'not-allowed';
-                } else {
-                    canvas.style.cursor = 'crosshair';
-                }
             } else {
                 hoverPixel.style.display = 'none';
-                canvas.style.cursor = 'crosshair';
             }
         }, 50));
         
         canvas.addEventListener('mouseout', () => {
             hoverPixel.style.display = 'none';
-            canvas.style.cursor = 'crosshair';
+            currentHoverX = -1;
+            currentHoverY = -1;
         });
 
         // Zoom controls
         document.getElementById('zoom-in').addEventListener('click', () => {
             zoom = Math.min(zoom + 0.5, 5);
             resizeCanvas();
+            playSound('click');
         });
         
         document.getElementById('zoom-out').addEventListener('click', () => {
             zoom = Math.max(zoom - 0.5, 0.5);
             resizeCanvas();
+            playSound('click');
         });
         
         document.getElementById('zoom-reset').addEventListener('click', () => {
             zoom = 1;
-            resizeCanvas();
-        });
-
-        document.getElementById('move-center').addEventListener('click', () => {
             offsetX = 0;
             offsetY = 0;
-            canvas.needsRedraw = true;
-            drawCanvas();
+            resizeCanvas();
+            playSound('click');
         });
 
-        // Panning/dragging the canvas
+        // Panning/dragging the canvas with debouncing
         canvas.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            lastMouseX = e.clientX;
-            lastMouseY = e.clientY;
-            canvas.style.cursor = 'grabbing';
+            // Only start dragging on left click
+            if (e.button === 0) {
+                isDragging = true;
+                lastMouseX = e.clientX;
+                lastMouseY = e.clientY;
+                canvas.style.cursor = 'grabbing';
+            }
         });
         
         window.addEventListener('mousemove', throttle((e) => {
@@ -2121,37 +2808,310 @@
             canvas.style.cursor = 'crosshair';
         });
 
-        // Mouse wheel zoom
-        document.getElementById('canvas-container').addEventListener('wheel', (e) => {
-            e.preventDefault();
+        // Sidebar toggles
+        document.getElementById('left-sidebar-toggle').addEventListener('click', () => {
+            document.querySelector('.left-sidebar').classList.toggle('collapsed');
+            playSound('click');
+        });
+        
+        document.getElementById('right-sidebar-toggle').addEventListener('click', () => {
+            document.querySelector('.sidebar:not(.left-sidebar)').classList.toggle('collapsed');
+            playSound('click');
+        });
+
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs and contents
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                // Add active class to clicked tab and corresponding content
+                tab.classList.add('active');
+                const tabId = tab.dataset.tab + '-tab';
+                document.getElementById(tabId).classList.add('active');
+                
+                playSound('click');
+            });
+        });
+
+        // Settings toggles
+        document.getElementById('dark-mode-toggle').addEventListener('change', (e) => {
+            document.documentElement.style.setProperty('--background', e.target.checked ? '#1a1a1b' : '#f0f0f0');
+            document.documentElement.style.setProperty('--surface', e.target.checked ? '#272729' : '#ffffff');
+            document.documentElement.style.setProperty('--surface-dark', e.target.checked ? '#1e1e1f' : '#f5f5f5');
+            document.documentElement.style.setProperty('--surface-light', e.target.checked ? '#343536' : '#e0e0e0');
+            document.documentElement.style.setProperty('--text-primary', e.target.checked ? '#d7dadc' : '#333333');
+            document.documentElement.style.setProperty('--text-secondary', e.target.checked ? '#818384' : '#666666');
+            document.documentElement.style.setProperty('--border', e.target.checked ? '#343536' : '#e0e0e0');
+            document.documentElement.style.setProperty('--grid-color', e.target.checked ? '#2c2c2c' : '#e0e0e0');
             
-            const delta = -Math.sign(e.deltaY);
-            const newZoom = Math.min(Math.max(zoom + delta * 0.1, 0.5), 5);
-            
-            if (newZoom !== zoom) {
-                zoom = newZoom;
-                resizeCanvas();
+            saveUserData();
+            playSound('click');
+        });
+        
+        document.getElementById('grid-toggle').addEventListener('change', () => {
+            canvas.needsRedraw = true;
+            drawCanvas();
+            saveUserData();
+            playSound('click');
+        });
+        
+        document.getElementById('hover-preview-toggle').addEventListener('change', () => {
+            if (!this.checked) {
+                hoverPixel.style.display = 'none';
             }
+            saveUserData();
+            playSound('click');
+        });
+        
+        document.getElementById('sound-toggle').addEventListener('change', () => {
+            saveUserData();
+            playSound('click');
+        });
+
+        // Save image button
+        document.getElementById('save-image-button').addEventListener('click', () => {
+            // Create a temporary canvas to draw the current view
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = canvas.width;
+            tempCanvas.height = canvas.height;
+            const tempCtx = tempCanvas.getContext('2d');
+            
+            // Draw the current canvas (we need to ensure it's up to date)
+            tempCtx.drawImage(canvas, 0, 0);
+            
+            // Convert to data URL and download
+            const dataURL = tempCanvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = `astro-places-${new Date().toISOString().slice(0, 10)}.png`;
+            link.href = dataURL;
+            link.click();
+            
+            showNotification('Image downloaded successfully', 'success');
+            playSound('click');
+            
+            // Log download event
+            logEvent(analytics, 'image_downloaded', {
+                user_id: userId
+            });
+        });
+
+        // Timelapse functionality
+        const timelapseContainer = document.getElementById('timelapse-container');
+        const timelapseCanvas = document.getElementById('timelapse-canvas');
+        const timelapseCtx = timelapseCanvas.getContext('2d');
+        let timelapseFrames = [];
+        let currentTimelapseFrame = 0;
+        let timelapseInterval = null;
+        
+        // Open timelapse modal
+        document.getElementById('timelapse-button').addEventListener('click', () => {
+            // Show loading state
+            document.getElementById('timelapse-time').textContent = 'Loading...';
+            document.getElementById('timelapse-frame').textContent = '';
+            
+            // Get history data
+            const historyRef = query(ref(db, 'history'), orderByChild('timestamp'));
+            
+            get(historyRef).then((snapshot) => {
+                const historyData = snapshot.val() || {};
+                
+                // Convert to array and sort by timestamp
+                const historyArray = Object.values(historyData).sort((a, b) => a.timestamp - b.timestamp);
+                
+                if (historyArray.length === 0) {
+                    showNotification('No history data available for timelapse', 'error');
+                    return;
+                }
+                
+                // Initialize timelapse canvas
+                timelapseCanvas.width = canvasSize;
+                timelapseCanvas.height = canvasSize;
+                timelapseCtx.fillStyle = '#FFFFFF';
+                timelapseCtx.fillRect(0, 0, canvasSize, canvasSize);
+                
+                // Process frames
+                timelapseFrames = [];
+                let currentFrame = Array(canvasSize).fill().map(() => Array(canvasSize).fill('#FFFFFF'));
+                
+                historyArray.forEach((item, index) => {
+                    const x = item.x;
+                    const y = item.y;
+                    const color = item.color === 'erased' ? '#FFFFFF' : `#${item.color}`;
+                    
+                    // Update current frame
+                    currentFrame[x][y] = color;
+                    
+                    // Take a snapshot every 100 changes or at the end
+                    if (index % 100 === 0 || index === historyArray.length - 1) {
+                        // Create a deep copy of currentFrame
+                        const frameCopy = currentFrame.map(row => [...row]);
+                        timelapseFrames.push({
+                            frame: frameCopy,
+                            timestamp: item.timestamp,
+                            index: index
+                        });
+                    }
+                });
+                
+                // Update UI
+                document.getElementById('timelapse-slider').max = timelapseFrames.length - 1;
+                document.getElementById('timelapse-slider').value = 0;
+                document.getElementById('timelapse-frame').textContent = `Frame: 1/${timelapseFrames.length}`;
+                document.getElementById('timelapse-time').textContent = `Time: ${formatDate(timelapseFrames[0].timestamp)}`;
+                
+                // Draw first frame
+                drawTimelapseFrame(0);
+                
+                // Show modal
+                timelapseContainer.style.display = 'flex';
+                
+                // Log timelapse view event
+                logEvent(analytics, 'timelapse_viewed', {
+                    user_id: userId,
+                    frame_count: timelapseFrames.length
+                });
+            }).catch(error => {
+                console.error("Error loading timelapse data:", error);
+                showNotification('Error loading timelapse data', 'error');
+            });
+            
+            playSound('click');
+        });
+        
+        // Close timelapse modal
+        document.getElementById('timelapse-close').addEventListener('click', () => {
+            timelapseContainer.style.display = 'none';
+            
+            // Clear any playing timelapse
+            if (timelapseInterval) {
+                clearInterval(timelapseInterval);
+                timelapseInterval = null;
+            }
+            
+            playSound('click');
+        });
+        
+        // Draw a specific timelapse frame
+        function drawTimelapseFrame(frameIndex) {
+            if (frameIndex < 0 || frameIndex >= timelapseFrames.length) return;
+            
+            const frame = timelapseFrames[frameIndex].frame;
+            currentTimelapseFrame = frameIndex;
+            
+            // Clear canvas
+            timelapseCtx.fillStyle = '#FFFFFF';
+            timelapseCtx.fillRect(0, 0, canvasSize, canvasSize);
+            
+            // Draw all pixels
+            for (let x = 0; x < canvasSize; x++) {
+                for (let y = 0; y < canvasSize; y++) {
+                    if (frame[x][y] !== '#FFFFFF') {
+                        timelapseCtx.fillStyle = frame[x][y];
+                        timelapseCtx.fillRect(x, y, 1, 1);
+                    }
+                }
+            }
+            
+            // Update UI
+            document.getElementById('timelapse-time').textContent = `Time: ${formatDate(timelapseFrames[frameIndex].timestamp)}`;
+            document.getElementById('timelapse-frame').textContent = `Frame: ${frameIndex + 1}/${timelapseFrames.length}`;
+            document.getElementById('timelapse-slider').value = frameIndex;
+        }
+        
+        // Timelapse slider control
+        document.getElementById('timelapse-slider').addEventListener('input', (e) => {
+            const frameIndex = parseInt(e.target.value);
+            drawTimelapseFrame(frameIndex);
+        });
+        
+        // Play timelapse
+        document.getElementById('timelapse-play').addEventListener('click', () => {
+            // Disable play button, enable pause
+            document.getElementById('timelapse-play').disabled = true;
+            document.getElementById('timelapse-pause').disabled = false;
+            
+            // Start playing from current frame
+            timelapseInterval = setInterval(() => {
+                if (currentTimelapseFrame < timelapseFrames.length - 1) {
+                    drawTimelapseFrame(currentTimelapseFrame + 1);
+                } else {
+                    // Reached end, stop playback
+                    clearInterval(timelapseInterval);
+                    timelapseInterval = null;
+                    document.getElementById('timelapse-play').disabled = false;
+                    document.getElementById('timelapse-pause').disabled = true;
+                }
+            }, 100); // 10 FPS
+            
+            playSound('click');
+        });
+        
+        // Pause timelapse
+        document.getElementById('timelapse-pause').addEventListener('click', () => {
+            if (timelapseInterval) {
+                clearInterval(timelapseInterval);
+                timelapseInterval = null;
+            }
+            
+            document.getElementById('timelapse-play').disabled = false;
+            document.getElementById('timelapse-pause').disabled = true;
+            
+            playSound('click');
+        });
+        
+        // Export timelapse as GIF (simplified - in a real app you'd use a library like gif.js)
+        document.getElementById('timelapse-export').addEventListener('click', () => {
+            showNotification('Exporting timelapse as GIF... (this is a demo)', 'success');
+            playSound('click');
+            
+            // In a real implementation, you would:
+            // 1. Use a library like gif.js to create an animated GIF
+            // 2. Add each frame with appropriate delay
+            // 3. Render and download the GIF
+            
+            // Log export event
+            logEvent(analytics, 'timelapse_exported', {
+                user_id: userId,
+                frame_count: timelapseFrames.length
+            });
         });
 
         // Username modal handling
-        document.getElementById('username-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            
+        document.getElementById('username-submit').addEventListener('click', () => {
             const input = document.getElementById('username-input');
             const name = input.value.trim();
             
             if (name.length < 3) {
                 showNotification('Username must be at least 3 characters', 'error');
+                playSound('error');
                 return;
             }
             
             if (name.length > 16) {
                 showNotification('Username must be 16 characters or less', 'error');
+                playSound('error');
+                return;
+            }
+            
+            // Check for inappropriate usernames
+            const bannedWords = ['admin', 'moderator', 'owner', 'fuck', 'shit', 'nigger', 'asshole', 'bitch'];
+            if (bannedWords.some(word => name.toLowerCase().includes(word))) {
+                showNotification('Username contains inappropriate content', 'error');
+                playSound('error');
                 return;
             }
             
             initializeUserSession(name);
+            playSound('click');
+        });
+
+        // Allow Enter key to submit username
+        document.getElementById('username-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('username-submit').click();
+            }
         });
 
         // Logout functionality
@@ -2165,7 +3125,7 @@
             
             // Update UI
             document.getElementById('user-info').style.display = 'none';
-            document.getElementById('username-modal').classList.add('active');
+            document.getElementById('username-modal').style.display = 'flex';
             document.getElementById('username-input').value = '';
             document.getElementById('username-input').focus();
             
@@ -2176,65 +3136,75 @@
             }
             
             showNotification('Logged out successfully', 'success');
-        });
-
-        // Modal controls
-        function setupModals() {
-            // Username modal
-            const usernameModal = document.getElementById('username-modal');
-            document.querySelector('#username-modal .modal-close').addEventListener('click', () => {
-                usernameModal.classList.remove('active');
-            });
+            playSound('click');
             
-            // Timelapse modal
-            const timelapseModal = document.getElementById('timelapse-modal');
-            document.getElementById('timelapse-button').addEventListener('click', () => {
-                timelapseModal.classList.add('active');
-                // TODO: Implement timelapse functionality
+            // Log logout event
+            logEvent(analytics, 'logout', {
+                user_id: userId
             });
-            document.querySelector('#timelapse-modal .modal-close').addEventListener('click', () => {
-                timelapseModal.classList.remove('active');
-            });
-            
-            // Help modal
-            const helpModal = document.getElementById('help-modal');
-            document.getElementById('help-button').addEventListener('click', () => {
-                helpModal.classList.add('active');
-            });
-            document.querySelector('#help-modal .modal-close').addEventListener('click', () => {
-                helpModal.classList.remove('active');
-            });
-            document.getElementById('help-close').addEventListener('click', () => {
-                helpModal.classList.remove('active');
-            });
-        }
-
-        // Refresh history button
-        document.getElementById('refresh-history').addEventListener('click', () => {
-            loadRecentHistory();
-            showNotification('History refreshed', 'info');
         });
 
         // Initialize the application
         function init() {
-            setupModals();
-            
             // Check for saved user data
             const savedUser = loadUserData();
             
             if (savedUser && savedUser.username) {
+                // Apply saved settings
+                if (savedUser.settings) {
+                    document.getElementById('dark-mode-toggle').checked = savedUser.settings.darkMode;
+                    document.getElementById('grid-toggle').checked = savedUser.settings.gridVisible;
+                    document.getElementById('hover-preview-toggle').checked = savedUser.settings.hoverPreview;
+                    document.getElementById('sound-toggle').checked = savedUser.settings.soundEnabled;
+                    
+                    // Trigger change events to apply settings
+                    document.getElementById('dark-mode-toggle').dispatchEvent(new Event('change'));
+                    document.getElementById('grid-toggle').dispatchEvent(new Event('change'));
+                }
+                
                 initializeUserSession(savedUser.username, savedUser.userId);
             } else {
                 // Show username modal
-                document.getElementById('username-modal').classList.add('active');
+                document.getElementById('username-modal').style.display = 'flex';
                 document.getElementById('username-input').focus();
             }
             
-            // Initialize canvas with default size
-            resizeCanvas();
+            // Add keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                // Zoom with + and - keys
+                if (e.key === '+' || e.key === '=') {
+                    document.getElementById('zoom-in').click();
+                } else if (e.key === '-' || e.key === '_') {
+                    document.getElementById('zoom-out').click();
+                }
+                
+                // Quick color selection with number keys (1-9 for first 9 colors)
+                if (e.key >= '1' && e.key <= '9') {
+                    const index = parseInt(e.key) - 1;
+                    if (index < colors.length) {
+                        const colorOption = document.querySelectorAll('.color-option')[index];
+                        if (colorOption) {
+                            colorOption.click();
+                        }
+                    }
+                }
+                
+                // Quick eraser with E key
+                if (e.key.toLowerCase() === 'e') {
+                    document.getElementById('eraser-toggle').click();
+                }
+                
+                // Place pixel with spacebar when hovering
+                if (e.key === ' ' && currentHoverX >= 0 && currentHoverY >= 0) {
+                    placePixel(currentHoverX, currentHoverY);
+                }
+            });
+            
+            // Log app initialized event
+            logEvent(analytics, 'app_initialized');
         }
 
-        // Start the app
+        // Start the app when DOM is loaded
         document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
