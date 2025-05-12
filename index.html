@@ -1,0 +1,2246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Astro Places - Collaborative Pixel Canvas</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #ff4500;
+            --primary-dark: #e03d00;
+            --primary-light: #ff6b33;
+            --bg-dark: #1a1a1b;
+            --bg-darker: #121213;
+            --bg-light: #272729;
+            --bg-lighter: #343536;
+            --text-primary: #d7dadc;
+            --text-secondary: #818384;
+            --text-tertiary: #565859;
+            --border: #343536;
+            --success: #00a368;
+            --error: #be0039;
+            --warning: #ffa800;
+            --info: #3690ea;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+            line-height: 1.5;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-light);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-light);
+        }
+
+        /* Main layout */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-width: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar {
+            width: 320px;
+            background-color: var(--bg-dark);
+            border-left: 1px solid var(--border);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .left-sidebar {
+            border-left: none;
+            border-right: 1px solid var(--border);
+        }
+
+        .sidebar-content {
+            padding: 1rem;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .sidebar-header {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            font-weight: bold;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: var(--bg-darker);
+        }
+
+        .sidebar-header i {
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        /* Header */
+        .header {
+            width: 100%;
+            background-color: var(--bg-darker);
+            color: white;
+            padding: 0.8rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            font-size: 1.8rem;
+            color: var(--primary);
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+            letter-spacing: 0.5px;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        /* Canvas container */
+        #canvas-container {
+            position: relative;
+            margin: 1rem auto;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            background-image: 
+                linear-gradient(45deg, var(--bg-lighter) 25%, transparent 25%), 
+                linear-gradient(-45deg, var(--bg-lighter) 25%, transparent 25%), 
+                linear-gradient(45deg, transparent 75%, var(--bg-lighter) 75%), 
+                linear-gradient(-45deg, transparent 75%, var(--bg-lighter) 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            flex-shrink: 0;
+        }
+
+        #place-canvas {
+            background-color: transparent;
+            image-rendering: pixelated;
+            cursor: crosshair;
+            display: block;
+        }
+
+        .hover-pixel {
+            position: absolute;
+            pointer-events: none;
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 10;
+        }
+
+        /* Color picker */
+        .color-picker-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .color-picker {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 1rem 0;
+            background-color: var(--bg-light);
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            gap: 6px;
+        }
+
+        .color-option {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.15s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .color-option:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .color-option.selected {
+            border-color: white;
+            transform: scale(1.1);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+        }
+
+        .color-option .color-tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--bg-light);
+            color: var(--text-primary);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 20;
+        }
+
+        .color-option:hover .color-tooltip {
+            opacity: 1;
+        }
+
+        /* Controls */
+        .controls-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .control-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .control-group-row {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            width: 100%;
+        }
+
+        #cooldown {
+            font-weight: bold;
+            padding: 0.6rem 1rem;
+            border-radius: 6px;
+            background-color: var(--bg-light);
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            min-width: 200px;
+            justify-content: center;
+        }
+
+        .cooldown-active {
+            color: var(--primary);
+        }
+
+        .cooldown-ready {
+            color: var(--success);
+        }
+
+        #coordinates {
+            padding: 0.6rem 1rem;
+            font-family: 'Fira Code', monospace;
+            background-color: var(--bg-light);
+            border-radius: 6px;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .timer-circle {
+            position: relative;
+            width: 24px;
+            height: 24px;
+        }
+
+        .timer-circle svg {
+            transform: rotate(-90deg);
+        }
+
+        .timer-circle circle {
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+        }
+
+        .timer-bg {
+            stroke: var(--bg-lighter);
+        }
+
+        .timer-progress {
+            stroke: var(--primary);
+            transition: stroke-dashoffset 1s linear;
+        }
+
+        /* Buttons */
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-light);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(255, 69, 0, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+
+        .btn:disabled {
+            background-color: var(--bg-lighter);
+            color: var(--text-tertiary);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background-color: rgba(255, 69, 0, 0.1);
+        }
+
+        .btn-sm {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
+        }
+
+        .btn-icon {
+            padding: 0.5rem;
+            width: 36px;
+            height: 36px;
+            justify-content: center;
+        }
+
+        /* Stats */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 0.8rem;
+            width: 100%;
+            max-width: 800px;
+            margin: 1rem auto;
+            padding: 0 1rem;
+        }
+
+        .stat-card {
+            background-color: var(--bg-light);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 0.3rem;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* History viewer */
+        .history-viewer {
+            width: 100%;
+            max-width: 800px;
+            margin: 1rem auto;
+            padding: 0 1rem;
+        }
+
+        .history-card {
+            background-color: var(--bg-light);
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .history-container {
+            display: flex;
+            gap: 0.8rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+            scrollbar-width: thin;
+        }
+
+        .history-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            padding: 0.8rem;
+            background-color: var(--bg-lighter);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            min-width: 120px;
+        }
+
+        .history-item-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .history-user {
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100px;
+        }
+
+        .history-coords {
+            font-family: 'Fira Code', monospace;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        .history-color {
+            width: 100%;
+            height: 20px;
+            border-radius: 4px;
+            margin-top: 0.3rem;
+        }
+
+        /* Leaderboard */
+        .leaderboard {
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+
+        .leaderboard-card {
+            background-color: var(--bg-light);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .leaderboard-header {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.8rem 1rem;
+            font-weight: bold;
+            background-color: var(--bg-lighter);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .leaderboard-container {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid var(--border);
+            transition: background-color 0.2s;
+        }
+
+        .leaderboard-item:last-child {
+            border-bottom: none;
+        }
+
+        .leaderboard-item:hover {
+            background-color: var(--bg-lighter);
+        }
+
+        .leaderboard-user {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .leaderboard-position {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--bg-lighter);
+            border-radius: 50%;
+            font-weight: bold;
+            font-size: 0.8rem;
+            color: var(--primary);
+        }
+
+        .leaderboard-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 0.8rem;
+        }
+
+        .leaderboard-name {
+            font-weight: 600;
+            max-width: 150px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .leaderboard-count {
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        /* User info */
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background-color: var(--bg-light);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .user-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .user-name {
+            font-weight: bold;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-pixels {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .logout-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .logout-btn:hover {
+            color: var(--text-primary);
+            background-color: var(--bg-lighter);
+        }
+
+        /* Modals */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-content {
+            background-color: var(--bg-light);
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+
+        .modal.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            transition: color 0.2s;
+        }
+
+        .modal-close:hover {
+            color: var(--text-primary);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.8rem;
+            background-color: var(--bg-lighter);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.8rem;
+            margin-top: 2rem;
+        }
+
+        /* Notification */
+        #notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--bg-light);
+            color: white;
+            padding: 0.8rem 1.2rem;
+            border-radius: 6px;
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.3);
+            display: none;
+            z-index: 100;
+            max-width: 300px;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        #notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .notification-success {
+            border-left: 4px solid var(--success);
+        }
+
+        .notification-error {
+            border-left: 4px solid var(--error);
+        }
+
+        .notification-warning {
+            border-left: 4px solid var(--warning);
+        }
+
+        .notification-info {
+            border-left: 4px solid var(--info);
+        }
+
+        /* Timelapse viewer */
+        .timelapse-container {
+            width: 100%;
+            height: 400px;
+            background-color: var(--bg-lighter);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #timelapse-canvas {
+            width: 100%;
+            height: 100%;
+            image-rendering: pixelated;
+        }
+
+        .timelapse-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .timelapse-slider {
+            width: 100%;
+            -webkit-appearance: none;
+            height: 6px;
+            background: var(--bg-light);
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .timelapse-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+        }
+
+        .timelapse-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 0.8rem;
+        }
+
+        /* Discord widget */
+        .discord-widget {
+            width: 100%;
+            height: 400px;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 1rem;
+            border: 1px solid var(--border);
+        }
+
+        /* Responsive design */
+        @media (max-width: 1200px) {
+            .sidebar {
+                width: 280px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            body {
+                flex-direction: column;
+                height: auto;
+                overflow-y: auto;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: auto;
+                border-left: none;
+                border-right: none;
+                border-top: 1px solid var(--border);
+                order: 2;
+            }
+
+            .main-content {
+                order: 1;
+                height: auto;
+            }
+
+            .sidebar-content {
+                max-height: 400px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 0.8rem;
+                padding: 0.8rem;
+            }
+
+            .header-controls {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .control-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .control-group-row {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            #cooldown, #coordinates {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .stats-container {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .history-item {
+                min-width: 100px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                padding: 1.5rem;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideInUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .animate-fade {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .animate-slide-up {
+            animation: slideInUp 0.3s ease-out;
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            width: 120px;
+            background-color: var(--bg-light);
+            color: var(--text-primary);
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.8rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .tooltip .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: var(--bg-light) transparent transparent transparent;
+        }
+
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Loading spinner */
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: var(--text-tertiary);
+        }
+
+        .empty-state p {
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Left Sidebar -->
+    <div class="sidebar left-sidebar">
+        <div class="user-info" id="user-info" style="display: none;">
+            <div class="user-avatar" id="user-avatar">U</div>
+            <div class="user-details">
+                <div class="user-name" id="username-display">Username</div>
+                <div class="user-pixels"><span id="your-pixels">0</span> pixels placed</div>
+            </div>
+            <button class="logout-btn" id="logout-btn" title="Logout">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
+        </div>
+
+        <div class="sidebar-header">
+            <span>Leaderboard</span>
+            <i class="fas fa-trophy"></i>
+        </div>
+        <div class="sidebar-content">
+            <div class="leaderboard-card">
+                <div class="leaderboard-header">
+                    <span>User</span>
+                    <span>Pixels</span>
+                </div>
+                <div class="leaderboard-container" id="leaderboard-container">
+                    <!-- Leaderboard items will be inserted here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="header">
+            <a href="#" class="logo">
+                <div class="logo-icon"><i class="fas fa-globe-americas"></i></div>
+                <div class="logo-text">Astro Places</div>
+            </a>
+            <div class="header-controls">
+                <div id="cooldown" class="cooldown-ready">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Ready to place</span>
+                </div>
+                <div id="coordinates">Hover over canvas</div>
+            </div>
+        </div>
+        
+        <div id="canvas-container">
+            <canvas id="place-canvas" width="100" height="100"></canvas>
+            <div class="hover-pixel" id="hover-pixel"></div>
+        </div>
+        
+        <div class="color-picker-container">
+            <div class="color-picker" id="color-picker">
+                <!-- Color options will be inserted here -->
+            </div>
+        </div>
+        
+        <div class="controls-container">
+            <div class="controls">
+                <div class="control-group">
+                    <div class="control-group-row">
+                        <button id="zoom-out" class="btn btn-sm btn-outline" title="Zoom Out">
+                            <i class="fas fa-search-minus"></i>
+                        </button>
+                        <button id="zoom-reset" class="btn btn-sm btn-outline" title="Reset Zoom">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                        <button id="zoom-in" class="btn btn-sm btn-outline" title="Zoom In">
+                            <i class="fas fa-search-plus"></i>
+                        </button>
+                        <button id="move-center" class="btn btn-sm btn-outline" title="Center Canvas">
+                            <i class="fas fa-crosshairs"></i>
+                        </button>
+                    </div>
+                    <div class="control-group-row">
+                        <button id="timelapse-button" class="btn btn-outline">
+                            <i class="fas fa-film"></i> View Timelapse
+                        </button>
+                        <button id="template-button" class="btn btn-outline">
+                            <i class="fas fa-image"></i> Load Template
+                        </button>
+                        <button id="help-button" class="btn btn-outline">
+                            <i class="fas fa-question-circle"></i> Help
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-value" id="user-count">0</div>
+                <div class="stat-label">Users Online</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="pixel-count">0</div>
+                <div class="stat-label">Total Pixels</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="canvas-size">0×0</div>
+                <div class="stat-label">Canvas Size</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="pixel-rate">0/s</div>
+                <div class="stat-label">Pixel Rate</div>
+            </div>
+        </div>
+        
+        <div class="history-viewer">
+            <div class="history-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-history"></i>
+                        <span>Recent Activity</span>
+                    </div>
+                    <button id="refresh-history" class="btn btn-sm btn-outline" title="Refresh">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+                <div class="history-container" id="history-container">
+                    <!-- History items will be inserted here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <span>Community Chat</span>
+            <i class="fas fa-comments"></i>
+        </div>
+        <div class="sidebar-content">
+            <div class="discord-widget">
+                <iframe src="https://discord.com/widget?id=1367209579460562964&theme=dark" 
+                        width="100%" 
+                        height="100%" 
+                        allowtransparency="true" 
+                        frameborder="0" 
+                        sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts">
+                </iframe>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification -->
+    <div id="notification"></div>
+
+    <!-- Username Modal -->
+    <div class="modal" id="username-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Welcome to Astro Places!</div>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="username-form">
+                <div class="form-group">
+                    <label for="username-input" class="form-label">Choose your username</label>
+                    <input type="text" 
+                           class="form-input" 
+                           id="username-input" 
+                           placeholder="Enter username (3-16 characters)" 
+                           minlength="3" 
+                           maxlength="16"
+                           required>
+                    <small class="text-muted">This will be visible to other players</small>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn" id="username-submit">
+                        <i class="fas fa-paint-brush"></i> Start Placing
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Timelapse Modal -->
+    <div class="modal" id="timelapse-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Canvas Timelapse</div>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="timelapse-container">
+                <canvas id="timelapse-canvas"></canvas>
+                <div class="timelapse-controls">
+                    <input type="range" 
+                           min="0" 
+                           max="100" 
+                           value="0" 
+                           class="timelapse-slider" 
+                           id="timelapse-slider">
+                    <div class="timelapse-buttons">
+                        <button id="timelapse-play" class="btn btn-sm">
+                            <i class="fas fa-play"></i> Play
+                        </button>
+                        <button id="timelapse-pause" class="btn btn-sm btn-outline">
+                            <i class="fas fa-pause"></i> Pause
+                        </button>
+                        <button id="timelapse-export" class="btn btn-sm btn-outline">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Template Modal -->
+    <div class="modal" id="template-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Load Template</div>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="template-form">
+                <div class="form-group">
+                    <label for="template-url" class="form-label">Image URL</label>
+                    <input type="url" 
+                           class="form-input" 
+                           id="template-url" 
+                           placeholder="https://example.com/image.png"
+                           required>
+                    <small class="text-muted">Enter URL of an image to use as a template</small>
+                </div>
+                <div class="form-group">
+                    <label for="template-opacity" class="form-label">Opacity</label>
+                    <input type="range" 
+                           class="form-input" 
+                           id="template-opacity" 
+                           min="10" 
+                           max="100" 
+                           value="50">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-outline" id="template-cancel">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn" id="template-submit">
+                        <i class="fas fa-image"></i> Load Template
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div class="modal" id="help-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Help & Instructions</div>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="form-group">
+                <h3>How to Play</h3>
+                <p>Welcome to Astro Places, a collaborative pixel art canvas!</p>
+                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                    <li>Click on the canvas to place a pixel with your selected color</li>
+                    <li>Choose colors from the palette at the bottom</li>
+                    <li>White color erases pixels</li>
+                    <li>There's a cooldown between placing pixels</li>
+                    <li>Work together with others to create amazing artwork!</li>
+                </ul>
+                
+                <h3 style="margin-top: 1.5rem;">Controls</h3>
+                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                    <li><strong>Zoom:</strong> Use + and - buttons or mouse wheel</li>
+                    <li><strong>Pan:</strong> Click and drag the canvas</li>
+                    <li><strong>Center:</strong> Click the crosshair button</li>
+                    <li><strong>Timelapse:</strong> View the canvas evolution over time</li>
+                </ul>
+                
+                <h3 style="margin-top: 1.5rem;">Community</h3>
+                <p>Join our Discord community to coordinate with other players, share templates, and discuss artwork ideas!</p>
+                
+                <div class="form-actions" style="margin-top: 2rem;">
+                    <button class="btn" id="help-close">
+                        <i class="fas fa-check"></i> Got it!
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { 
+            getDatabase, 
+            ref, 
+            onValue, 
+            set, 
+            get, 
+            push, 
+            remove, 
+            update,
+            query,
+            limitToLast,
+            orderByChild
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCpOUr78CAyGatrQdVOw6yf8EK4OvtoMoo",
+            authDomain: "astro-places-1aec2.firebaseapp.com",
+            projectId: "astro-places-1aec2",
+            storageBucket: "astro-places-1aec2.appspot.com",
+            messagingSenderId: "502500788903",
+            appId: "1:502500788903:web:5f742fd1ad5cce9063e982",
+            measurementId: "G-6J7SM1KM05",
+            databaseURL: "https://astro-places-1aec2-default-rtdb.firebaseio.com"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Utility functions
+        function throttle(func, limit) {
+            let inThrottle;
+            return function() {
+                const args = arguments;
+                const context = this;
+                if (!inThrottle) {
+                    func.apply(context, args);
+                    inThrottle = true;
+                    setTimeout(() => inThrottle = false, limit);
+                }
+            };
+        }
+
+        function debounce(func, wait, immediate) {
+            let timeout;
+            return function() {
+                const context = this;
+                const args = arguments;
+                const later = function() {
+                    timeout = null;
+                    if (!immediate) func.apply(context, args);
+                };
+                const callNow = immediate && !timeout;
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+                if (callNow) func.apply(context, args);
+            };
+        }
+
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+
+        function rgbToHex(r, g, b) {
+            return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+        }
+
+        function getContrastColor(hexColor) {
+            const rgb = hexToRgb(hexColor);
+            if (!rgb) return '#000000';
+            
+            // Calculate luminance
+            const luminance = (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) / 255;
+            return luminance > 0.5 ? '#000000' : '#FFFFFF';
+        }
+
+        // Canvas setup
+        const canvas = document.getElementById('place-canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        let canvasSize = 100; // Will be updated from Firebase
+        const basePixelSize = 3; // Base size of each pixel
+        
+        // Current view properties
+        let zoom = 1;
+        let offsetX = 0;
+        let offsetY = 0;
+        let isDragging = false;
+        let lastMouseX = 0;
+        let lastMouseY = 0;
+        
+        // User interaction
+        let selectedColor = '#000000';
+        let lastPlacedTime = 0;
+        const cooldownTime = 5000; // 5 seconds cooldown
+        let userId = '';
+        let username = '';
+        let userPresenceRef = null;
+        let myPixelCount = 0;
+        let totalPixelCount = 0;
+        let pixelRate = 0;
+        let lastPixelCount = 0;
+        let lastRateCheck = Date.now();
+        
+        // Hover preview
+        const hoverPixel = document.getElementById('hover-pixel');
+        
+        // Color palette with names
+        const colors = [
+            { hex: '#FFFFFF', name: 'White' },
+            { hex: '#D4D7D9', name: 'Light Gray' },
+            { hex: '#898D90', name: 'Gray' },
+            { hex: '#515252', name: 'Dark Gray' },
+            { hex: '#000000', name: 'Black' },
+            { hex: '#D80000', name: 'Red' },
+            { hex: '#FF4500', name: 'Orange Red' },
+            { hex: '#FFA800', name: 'Orange' },
+            { hex: '#FFD635', name: 'Yellow' },
+            { hex: '#00A368', name: 'Green' },
+            { hex: '#7EED56', name: 'Light Green' },
+            { hex: '#2450A4', name: 'Dark Blue' },
+            { hex: '#3690EA', name: 'Blue' },
+            { hex: '#51E9F4', name: 'Cyan' },
+            { hex: '#811E9F', name: 'Purple' },
+            { hex: '#B44AC0', name: 'Magenta' },
+            { hex: '#FF99AA', name: 'Pink' },
+            { hex: '#6A5CFF', name: 'Lavender' },
+            { hex: '#E4ABFF', name: 'Light Purple' },
+            { hex: '#BE0039', name: 'Dark Red' },
+            { hex: '#FF3881', name: 'Hot Pink' },
+            { hex: '#493AC1', name: 'Indigo' },
+            { hex: '#6D001A', name: 'Maroon' },
+            { hex: '#6D482F', name: 'Brown' },
+            { hex: '#9C6926', name: 'Light Brown' },
+            { hex: '#008080', name: 'Teal' },
+            { hex: '#00CED1', name: 'Turquoise' },
+            { hex: '#20B2AA', name: 'Sea Green' },
+            { hex: '#556B2F', name: 'Olive' },
+            { hex: '#8FBC8F', name: 'Sage' },
+            { hex: '#F08080', name: 'Coral' },
+            { hex: '#FA8072', name: 'Salmon' },
+            { hex: '#FFDAB9', name: 'Peach' },
+            { hex: '#FFB6C1', name: 'Light Pink' },
+            { hex: '#DB7093', name: 'Pale Violet' },
+            { hex: '#9370DB', name: 'Medium Purple' },
+            { hex: '#BA55D3', name: 'Orchid' },
+            { hex: '#8A2BE2', name: 'Blue Violet' },
+            { hex: '#4B0082', name: 'Indigo' },
+            { hex: '#4169E1', name: 'Royal Blue' },
+            { hex: '#00BFFF', name: 'Deep Sky Blue' },
+            { hex: '#1E90FF', name: 'Dodger Blue' },
+            { hex: '#7B68EE', name: 'Medium Slate Blue' },
+            { hex: '#FF6347', name: 'Tomato' },
+            { hex: '#FF7F50', name: 'Coral' },
+            { hex: '#FFA07A', name: 'Light Salmon' },
+            { hex: '#EEE8AA', name: 'Pale Goldenrod' },
+            { hex: '#98FB98', name: 'Mint' },
+            { hex: '#ADFF2F', name: 'Green Yellow' }
+        ];
+
+        // Create color picker with tooltips
+        const colorPicker = document.getElementById('color-picker');
+        colors.forEach(color => {
+            const colorOption = document.createElement('div');
+            colorOption.className = 'color-option';
+            colorOption.style.backgroundColor = color.hex;
+            colorOption.dataset.color = color.hex;
+            
+            // Add tooltip
+            const tooltip = document.createElement('span');
+            tooltip.className = 'color-tooltip';
+            tooltip.textContent = color.name;
+            colorOption.appendChild(tooltip);
+            
+            colorOption.addEventListener('click', () => {
+                document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
+                colorOption.classList.add('selected');
+                selectedColor = color.hex;
+                
+                // Update hover preview
+                if (hoverPixel.style.display === 'block') {
+                    hoverPixel.style.backgroundColor = color.hex;
+                }
+            });
+            
+            colorPicker.appendChild(colorOption);
+        });
+        
+        // Select the first color by default
+        document.querySelector('.color-option').classList.add('selected');
+
+        // Resize canvas element based on zoom level
+        function resizeCanvas() {
+            const container = document.getElementById('canvas-container');
+            const pixelSize = basePixelSize * zoom;
+            
+            canvas.width = canvasSize;
+            canvas.height = canvasSize;
+            canvas.style.width = (canvasSize * pixelSize) + 'px';
+            canvas.style.height = (canvasSize * pixelSize) + 'px';
+            container.style.width = (canvasSize * pixelSize) + 'px';
+            container.style.height = (canvasSize * pixelSize) + 'px';
+            
+            // Update hover pixel size
+            hoverPixel.style.width = pixelSize + 'px';
+            hoverPixel.style.height = pixelSize + 'px';
+            
+            // Mark canvas for redraw
+            canvas.needsRedraw = true;
+            drawCanvas();
+        }
+
+        // Optimized canvas drawing with buffering and requestAnimationFrame
+        function drawCanvas() {
+            if (!canvas.needsRedraw) return;
+            canvas.needsRedraw = false;
+            
+            // Create buffer if it doesn't exist
+            if (!canvas.buffer) {
+                canvas.buffer = document.createElement('canvas');
+                canvas.buffer.width = canvas.width;
+                canvas.buffer.height = canvas.height;
+                canvas.bufferCtx = canvas.buffer.getContext('2d');
+                canvas.backgroundDrawn = false;
+            }
+            
+            // Draw grid background only once
+            if (!canvas.backgroundDrawn) {
+                canvas.bufferCtx.fillStyle = '#FFFFFF';
+                canvas.bufferCtx.fillRect(0, 0, canvas.width, canvas.height);
+                canvas.backgroundDrawn = true;
+            }
+            
+            // Get pixels from Firebase
+            const pixelsRef = ref(db, 'pixels');
+            onValue(pixelsRef, (snapshot) => {
+                const pixelData = snapshot.val() || {};
+                
+                requestAnimationFrame(() => {
+                    // Clear only the buffer
+                    canvas.bufferCtx.clearRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Draw white background
+                    canvas.bufferCtx.fillStyle = '#FFFFFF';
+                    canvas.bufferCtx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    totalPixelCount = 0;
+                    myPixelCount = 0;
+                    
+                    // Reset user pixel counts for leaderboard
+                    for (const userId in userPixelCounts) {
+                        userPixelCounts[userId] = 0;
+                    }
+                    
+                    // Batch pixel updates
+                    for (const key in pixelData) {
+                        const [x, y] = key.split(',');
+                        const xInt = parseInt(x);
+                        const yInt = parseInt(y);
+                        
+                        if (xInt >= 0 && xInt < canvasSize && yInt >= 0 && yInt < canvasSize) {
+                            const pixelValue = pixelData[key];
+                            let pixelColor;
+                            
+                            if (typeof pixelValue === 'string') {
+                                pixelColor = pixelValue.startsWith('#') ? pixelValue : `#${pixelValue}`;
+                            } else if (pixelValue?.color) {
+                                pixelColor = pixelValue.color.startsWith('#') ? pixelValue.color : `#${pixelValue.color}`;
+                            } else {
+                                pixelColor = '#FFFFFF';
+                            }
+                            
+                            canvas.bufferCtx.fillStyle = pixelColor;
+                            canvas.bufferCtx.fillRect(xInt, yInt, 1, 1);
+                            totalPixelCount++;
+                            
+                            if (typeof pixelValue === 'object' && pixelValue?.userId) {
+                                const userId = pixelValue.userId;
+                                userPixelCounts[userId] = (userPixelCounts[userId] || 0) + 1;
+                                
+                                if (userId === userId) {
+                                    myPixelCount++;
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Draw the buffer to the main canvas in one operation
+                    ctx.drawImage(canvas.buffer, 0, 0);
+                    
+                    // Update counters
+                    document.getElementById('pixel-count').textContent = totalPixelCount.toLocaleString();
+                    document.getElementById('your-pixels').textContent = myPixelCount.toLocaleString();
+                    document.getElementById('canvas-size').textContent = `${canvasSize}×${canvasSize}`;
+                    
+                    // Calculate pixel rate
+                    const now = Date.now();
+                    if (now - lastRateCheck > 1000) {
+                        const pixelsPlaced = totalPixelCount - lastPixelCount;
+                        pixelRate = pixelsPlaced / ((now - lastRateCheck) / 1000);
+                        lastPixelCount = totalPixelCount;
+                        lastRateCheck = now;
+                        
+                        document.getElementById('pixel-rate').textContent = `${Math.round(pixelRate * 10) / 10}/s`;
+                    }
+                    
+                    // Update leaderboard
+                    updateLeaderboard();
+                });
+            }, {
+                onlyOnce: false
+            });
+        }
+
+        // Place pixel with cooldown and error handling
+        async function placePixel(x, y) {
+            if (!userId || !username) {
+                showNotification('Please set a username first', 'error');
+                return;
+            }
+
+            const now = Date.now();
+
+            // Check cooldown
+            if (now - lastPlacedTime < cooldownTime) {
+                showNotification(`Please wait ${Math.ceil((cooldownTime - (now - lastPlacedTime)) / 1000)} more seconds`, 'warning');
+                return;
+            }
+
+            // Ensure coordinates are within bounds
+            if (x < 0 || x >= canvasSize || y < 0 || y >= canvasSize) {
+                showNotification('Cannot place pixel outside canvas', 'error');
+                return;
+            }
+
+            const pixelRef = ref(db, `pixels/${x},${y}`);
+
+            if (selectedColor === '#FFFFFF') {
+                // White color will delete the pixel
+                try {
+                    await remove(pixelRef);
+                    lastPlacedTime = now;
+                    updateCooldown();
+                    addToHistory(x, y, 'erased');
+                    showNotification('Pixel erased successfully!', 'success');
+                } catch (error) {
+                    console.error("Error erasing pixel: ", error);
+                    showNotification('Error erasing pixel. Try again.', 'error');
+                }
+            } else {
+                // Place the pixel in Firebase
+                try {
+                    await set(pixelRef, {
+                        color: selectedColor,
+                        userId: userId,
+                        username: username,
+                        timestamp: now
+                    });
+                    lastPlacedTime = now;
+                    updateCooldown();
+                    addToHistory(x, y, selectedColor);
+                    showNotification('Pixel placed successfully!', 'success');
+                } catch (error) {
+                    console.error("Error placing pixel: ", error);
+                    showNotification('Error placing pixel. Try again.', 'error');
+                }
+            }
+            
+            // Mark canvas for redraw
+            canvas.needsRedraw = true;
+        }
+
+        // Update cooldown timer with circle animation
+        function updateCooldown() {
+            const cooldownElement = document.getElementById('cooldown');
+            const now = Date.now();
+            const timeLeft = cooldownTime - (now - lastPlacedTime);
+            
+            if (timeLeft > 0) {
+                const remainingTime = Math.ceil(timeLeft / 1000);
+                const percentage = (timeLeft / cooldownTime) * 100;
+                
+                // Create timer circle if needed
+                if (!document.querySelector('.timer-circle')) {
+                    cooldownElement.innerHTML = '';
+                    cooldownElement.className = 'cooldown-active';
+                    
+                    const timerIcon = document.createElement('i');
+                    timerIcon.className = 'fas fa-clock';
+                    cooldownElement.appendChild(timerIcon);
+                    
+                    const timerCircle = document.createElement('div');
+                    timerCircle.className = 'timer-circle';
+                    timerCircle.innerHTML = `
+                        <svg width="24" height="24" viewBox="0 0 24 24">
+                            <circle class="timer-bg" cx="12" cy="12" r="10" />
+                            <circle class="timer-progress" cx="12" cy="12" r="10" stroke-dasharray="62.8" stroke-dashoffset="0" />
+                        </svg>
+                    `;
+                    
+                    const timerText = document.createElement('span');
+                    timerText.className = 'timer-text';
+                    timerText.textContent = `${remainingTime}s`;
+                    
+                    cooldownElement.appendChild(timerCircle);
+                    cooldownElement.appendChild(timerText);
+                }
+                
+                // Update timer progress
+                const progressCircle = document.querySelector('.timer-progress');
+                const timerText = document.querySelector('.timer-text');
+                
+                const circumference = 2 * Math.PI * 10; // r=10
+                const offset = circumference - (percentage / 100) * circumference;
+                progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
+                progressCircle.style.strokeDashoffset = offset;
+                
+                timerText.textContent = `${remainingTime}s`;
+                
+                setTimeout(updateCooldown, 50);
+            } else {
+                cooldownElement.className = 'cooldown-ready';
+                cooldownElement.innerHTML = `
+                    <i class="fas fa-check-circle"></i>
+                    <span>Ready to place</span>
+                `;
+            }
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification-${type} show`;
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Add to history log
+        function addToHistory(x, y, color) {
+            // Add to Firebase history
+            const historyRef = ref(db, 'history');
+            push(historyRef, {
+                x: x,
+                y: y,
+                color: color,
+                userId: userId,
+                username: username,
+                timestamp: Date.now()
+            });
+        }
+
+        // Track user pixel counts for leaderboard
+        const userPixelCounts = {};
+        const usernames = {};
+
+        // Update the leaderboard display
+        function updateLeaderboard() {
+            const leaderboardContainer = document.getElementById('leaderboard-container');
+            
+            // Convert to array and sort by pixel count
+            const sortedUsers = Object.entries(userPixelCounts)
+                .map(([userId, count]) => ({ 
+                    userId, 
+                    count,
+                    username: usernames[userId] || 'Anonymous'
+                }))
+                .sort((a, b) => b.count - a.count)
+                .slice(0, 10); // Top 10 users
+            
+            // Create leaderboard HTML
+            const fragment = document.createDocumentFragment();
+            
+            if (sortedUsers.length === 0) {
+                const emptyState = document.createElement('div');
+                emptyState.className = 'empty-state';
+                emptyState.innerHTML = `
+                    <i class="fas fa-user-friends"></i>
+                    <p>No activity yet</p>
+                `;
+                fragment.appendChild(emptyState);
+            } else {
+                sortedUsers.forEach((user, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'leaderboard-item';
+                    
+                    const userDiv = document.createElement('div');
+                    userDiv.className = 'leaderboard-user';
+                    
+                    const position = document.createElement('div');
+                    position.className = 'leaderboard-position';
+                    position.textContent = index + 1;
+                    
+                    const avatar = document.createElement('div');
+                    avatar.className = 'leaderboard-avatar';
+                    avatar.textContent = user.username.charAt(0).toUpperCase();
+                    
+                    const name = document.createElement('div');
+                    name.className = 'leaderboard-name';
+                    name.textContent = user.username;
+                    
+                    userDiv.appendChild(position);
+                    userDiv.appendChild(avatar);
+                    userDiv.appendChild(name);
+                    
+                    const count = document.createElement('div');
+                    count.className = 'leaderboard-count';
+                    count.textContent = user.count.toLocaleString();
+                    
+                    item.appendChild(userDiv);
+                    item.appendChild(count);
+                    
+                    fragment.appendChild(item);
+                });
+            }
+            
+            leaderboardContainer.innerHTML = '';
+            leaderboardContainer.appendChild(fragment);
+        }
+
+        // Load recent history
+        function loadRecentHistory() {
+            const historyRef = query(
+                ref(db, 'history'),
+                orderByChild('timestamp'),
+                limitToLast(10)
+            );
+            
+            onValue(historyRef, (snapshot) => {
+                const historyData = snapshot.val() || {};
+                const historyItems = Object.values(historyData).reverse();
+                
+                const historyContainer = document.getElementById('history-container');
+                historyContainer.innerHTML = '';
+                
+                if (historyItems.length === 0) {
+                    const emptyState = document.createElement('div');
+                    emptyState.className = 'empty-state';
+                    emptyState.innerHTML = `
+                        <i class="fas fa-history"></i>
+                        <p>No recent activity</p>
+                    `;
+                    historyContainer.appendChild(emptyState);
+                    return;
+                }
+                
+                historyItems.forEach(item => {
+                    const historyItem = document.createElement('div');
+                    historyItem.className = 'history-item';
+                    
+                    const header = document.createElement('div');
+                    header.className = 'history-item-header';
+                    
+                    const avatar = document.createElement('div');
+                    avatar.className = 'leaderboard-avatar';
+                    avatar.style.width = '20px';
+                    avatar.style.height = '20px';
+                    avatar.style.fontSize = '0.7rem';
+                    avatar.textContent = item.username?.charAt(0).toUpperCase() || '?';
+                    
+                    const user = document.createElement('div');
+                    user.className = 'history-user';
+                    user.textContent = item.username || 'Anonymous';
+                    
+                    header.appendChild(avatar);
+                    header.appendChild(user);
+                    
+                    const coords = document.createElement('div');
+                    coords.className = 'history-coords';
+                    coords.textContent = `(${item.x}, ${item.y})`;
+                    
+                    const color = document.createElement('div');
+                    color.className = 'history-color';
+                    color.style.backgroundColor = item.color === 'erased' ? '#FFFFFF' : item.color;
+                    
+                    historyItem.appendChild(header);
+                    historyItem.appendChild(coords);
+                    historyItem.appendChild(color);
+                    
+                    historyContainer.appendChild(historyItem);
+                });
+            });
+        }
+
+        // Generate a random user ID
+        function generateUserId() {
+            return 'user_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        // Save user data to localStorage
+        function saveUserData() {
+            localStorage.setItem('astroPlacesUser', JSON.stringify({
+                userId: userId,
+                username: username
+            }));
+        }
+
+        // Load user data from localStorage
+        function loadUserData() {
+            const userData = localStorage.getItem('astroPlacesUser');
+            if (userData) {
+                try {
+                    return JSON.parse(userData);
+                } catch (e) {
+                    return null;
+                }
+            }
+            return null;
+        }
+
+        // Clear user data from localStorage
+        function clearUserData() {
+            localStorage.removeItem('astroPlacesUser');
+        }
+
+        // Optimized user presence handling
+        function setupUserPresence() {
+            userPresenceRef = ref(db, `users/${userId}`);
+            
+            // Set user as online
+            set(userPresenceRef, {
+                online: true,
+                username: username,
+                lastActive: Date.now(),
+                joinedAt: Date.now()
+            });
+            
+            // Update last active time periodically
+            const presenceInterval = setInterval(() => {
+                if (!userPresenceRef) {
+                    clearInterval(presenceInterval);
+                    return;
+                }
+                update(userPresenceRef, {
+                    lastActive: Date.now()
+                });
+            }, 30000);
+            
+            // Listen for all users
+            const usersRef = ref(db, 'users');
+            let lastUserCountUpdate = 0;
+            
+            onValue(usersRef, (snapshot) => {
+                const now = Date.now();
+                // Throttle updates to at most once per 5 seconds
+                if (now - lastUserCountUpdate < 5000) return;
+                lastUserCountUpdate = now;
+                
+                const users = snapshot.val() || {};
+                const activeUsers = Object.values(users).filter(user => 
+                    user.online && (now - user.lastActive < 60000)
+                ).length;
+                
+                document.getElementById('user-count').textContent = activeUsers.toLocaleString();
+                
+                // Update usernames mapping
+                for (const userId in users) {
+                    if (users[userId].username) {
+                        usernames[userId] = users[userId].username;
+                    }
+                }
+            });
+        }
+
+        // Initialize user session
+        function initializeUserSession(savedUsername, savedUserId) {
+            username = savedUsername;
+            userId = savedUserId || generateUserId();
+            
+            // Update UI
+            document.getElementById('user-info').style.display = 'flex';
+            document.getElementById('username-display').textContent = username;
+            document.getElementById('user-avatar').textContent = username.charAt(0).toUpperCase();
+            document.getElementById('username-modal').classList.remove('active');
+            
+            // Save user data
+            saveUserData();
+            
+            // Initialize user presence
+            setupUserPresence();
+            
+            // Load canvas
+            const configRef = ref(db, 'config/canvasSize');
+            get(configRef).then((snapshot) => {
+                if (snapshot.exists()) {
+                    canvasSize = snapshot.val();
+                }
+                resizeCanvas();
+                drawCanvas();
+            });
+            
+            // Load recent history
+            loadRecentHistory();
+            
+            // Show welcome message
+            showNotification(`Welcome, ${username}! Start placing pixels now.`, 'success');
+        }
+
+        // Canvas interaction events
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            
+            const x = Math.floor((e.clientX - rect.left) * scaleX);
+            const y = Math.floor((e.clientY - rect.top) * scaleY);
+            
+            placePixel(x, y);
+        });
+
+        // Throttled hover effect
+        canvas.addEventListener('mousemove', throttle((e) => {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            
+            const x = Math.floor((e.clientX - rect.left) * scaleX);
+            const y = Math.floor((e.clientY - rect.top) * scaleY);
+            
+            // Update coordinates display
+            document.getElementById('coordinates').textContent = `(${x}, ${y})`;
+            
+            // Show hover preview
+            if (x >= 0 && x < canvasSize && y >= 0 && y < canvasSize) {
+                hoverPixel.style.display = 'block';
+                hoverPixel.style.left = (x * basePixelSize * zoom) + 'px';
+                hoverPixel.style.top = (y * basePixelSize * zoom) + 'px';
+                hoverPixel.style.backgroundColor = selectedColor;
+            } else {
+                hoverPixel.style.display = 'none';
+            }
+        }, 50));
+        
+        canvas.addEventListener('mouseout', () => {
+            hoverPixel.style.display = 'none';
+        });
+
+        // Zoom controls
+        document.getElementById('zoom-in').addEventListener('click', () => {
+            zoom = Math.min(zoom + 0.5, 5);
+            resizeCanvas();
+        });
+        
+        document.getElementById('zoom-out').addEventListener('click', () => {
+            zoom = Math.max(zoom - 0.5, 0.5);
+            resizeCanvas();
+        });
+        
+        document.getElementById('zoom-reset').addEventListener('click', () => {
+            zoom = 1;
+            resizeCanvas();
+        });
+
+        document.getElementById('move-center').addEventListener('click', () => {
+            offsetX = 0;
+            offsetY = 0;
+            canvas.needsRedraw = true;
+            drawCanvas();
+        });
+
+        // Panning/dragging the canvas
+        canvas.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+            canvas.style.cursor = 'grabbing';
+        });
+        
+        window.addEventListener('mousemove', throttle((e) => {
+            if (!isDragging) return;
+            
+            const dx = e.clientX - lastMouseX;
+            const dy = e.clientY - lastMouseY;
+            
+            // Update offsets for panning
+            offsetX += dx;
+            offsetY += dy;
+
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+
+            // Mark canvas for redraw
+            canvas.needsRedraw = true;
+        }, 16)); // ~60fps
+        
+        window.addEventListener('mouseup', () => {
+            isDragging = false;
+            canvas.style.cursor = 'crosshair';
+        });
+
+        // Mouse wheel zoom
+        document.getElementById('canvas-container').addEventListener('wheel', (e) => {
+            e.preventDefault();
+            
+            const delta = -Math.sign(e.deltaY);
+            const newZoom = Math.min(Math.max(zoom + delta * 0.1, 0.5), 5);
+            
+            if (newZoom !== zoom) {
+                zoom = newZoom;
+                resizeCanvas();
+            }
+        });
+
+        // Username modal handling
+        document.getElementById('username-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const input = document.getElementById('username-input');
+            const name = input.value.trim();
+            
+            if (name.length < 3) {
+                showNotification('Username must be at least 3 characters', 'error');
+                return;
+            }
+            
+            if (name.length > 16) {
+                showNotification('Username must be 16 characters or less', 'error');
+                return;
+            }
+            
+            initializeUserSession(name);
+        });
+
+        // Logout functionality
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            // Clear user data
+            clearUserData();
+            
+            // Reset user session
+            userId = '';
+            username = '';
+            
+            // Update UI
+            document.getElementById('user-info').style.display = 'none';
+            document.getElementById('username-modal').classList.add('active');
+            document.getElementById('username-input').value = '';
+            document.getElementById('username-input').focus();
+            
+            // Remove from online users
+            if (userPresenceRef) {
+                remove(userPresenceRef);
+                userPresenceRef = null;
+            }
+            
+            showNotification('Logged out successfully', 'success');
+        });
+
+        // Modal controls
+        function setupModals() {
+            // Username modal
+            const usernameModal = document.getElementById('username-modal');
+            document.querySelector('#username-modal .modal-close').addEventListener('click', () => {
+                usernameModal.classList.remove('active');
+            });
+            
+            // Timelapse modal
+            const timelapseModal = document.getElementById('timelapse-modal');
+            document.getElementById('timelapse-button').addEventListener('click', () => {
+                timelapseModal.classList.add('active');
+                // TODO: Implement timelapse functionality
+            });
+            document.querySelector('#timelapse-modal .modal-close').addEventListener('click', () => {
+                timelapseModal.classList.remove('active');
+            });
+            
+            // Template modal
+            const templateModal = document.getElementById('template-modal');
+            document.getElementById('template-button').addEventListener('click', () => {
+                templateModal.classList.add('active');
+            });
+            document.querySelector('#template-modal .modal-close').addEventListener('click', () => {
+                templateModal.classList.remove('active');
+            });
+            document.getElementById('template-cancel').addEventListener('click', () => {
+                templateModal.classList.remove('active');
+            });
+            document.getElementById('template-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                // TODO: Implement template loading
+                showNotification('Template loaded successfully', 'success');
+                templateModal.classList.remove('active');
+            });
+            
+            // Help modal
+            const helpModal = document.getElementById('help-modal');
+            document.getElementById('help-button').addEventListener('click', () => {
+                helpModal.classList.add('active');
+            });
+            document.querySelector('#help-modal .modal-close').addEventListener('click', () => {
+                helpModal.classList.remove('active');
+            });
+            document.getElementById('help-close').addEventListener('click', () => {
+                helpModal.classList.remove('active');
+            });
+        }
+
+        // Refresh history button
+        document.getElementById('refresh-history').addEventListener('click', () => {
+            loadRecentHistory();
+            showNotification('History refreshed', 'info');
+        });
+
+        // Initialize the application
+        function init() {
+            setupModals();
+            
+            // Check for saved user data
+            const savedUser = loadUserData();
+            
+            if (savedUser && savedUser.username) {
+                initializeUserSession(savedUser.username, savedUser.userId);
+            } else {
+                // Show username modal
+                document.getElementById('username-modal').classList.add('active');
+                document.getElementById('username-input').focus();
+            }
+            
+            // Initialize canvas with default size
+            resizeCanvas();
+        }
+
+        // Start the app
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
