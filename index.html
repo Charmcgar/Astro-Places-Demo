@@ -72,12 +72,24 @@
             border-left: 1px solid var(--border);
             overflow-y: auto;
             height: 100vh;
+            position: fixed;
+            top: 0;
             transition: transform 0.3s ease;
+            z-index: 100;
         }
 
         .left-sidebar {
             border-left: none;
             border-right: 1px solid var(--border);
+            left: -320px;
+        }
+
+        .right-sidebar {
+            right: -320px;
+        }
+
+        .sidebar.active {
+            transform: translateX(320px);
         }
 
         .sidebar-header {
@@ -102,7 +114,6 @@
             color: var(--text-secondary);
             cursor: pointer;
             font-size: 1rem;
-            display: none;
         }
 
         .header {
@@ -1171,6 +1182,51 @@
             max-width: 300px;
         }
 
+        /* Hamburger menu */
+        .menu-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 101;
+            background-color: var(--surface-dark);
+            border: none;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .menu-toggle:hover {
+            background-color: var(--surface);
+        }
+
+        .menu-toggle i {
+            font-size: 1.5rem;
+            color: var(--text-primary);
+        }
+
+        .right-menu-toggle {
+            left: auto;
+            right: 20px;
+        }
+
+        /* Overlay for when menu is open */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+            display: none;
+        }
+
         /* Responsive styles */
         @media (max-width: 1200px) {
             .sidebar {
@@ -1299,11 +1355,22 @@
     </style>
 </head>
 <body>
+    <!-- Hamburger menu buttons -->
+    <button class="menu-toggle" id="left-menu-toggle">
+        <i class="fas fa-bars"></i>
+    </button>
+    <button class="menu-toggle right-menu-toggle" id="right-menu-toggle">
+        <i class="fas fa-users"></i>
+    </button>
+    
+    <!-- Overlay for when menu is open -->
+    <div class="overlay" id="overlay"></div>
+
     <div class="sidebar left-sidebar">
         <div class="sidebar-header">
             <h3 class="sidebar-title">User Profile</h3>
             <button class="sidebar-toggle" id="left-sidebar-toggle">
-                <i class="fas fa-chevron-left"></i>
+                <i class="fas fa-times"></i>
             </button>
         </div>
         
@@ -1484,11 +1551,11 @@
         </div>
     </div>
 
-    <div class="sidebar">
+    <div class="sidebar right-sidebar">
         <div class="sidebar-header">
             <h3 class="sidebar-title">Community</h3>
             <button class="sidebar-toggle" id="right-sidebar-toggle">
-                <i class="fas fa-chevron-right"></i>
+                <i class="fas fa-times"></i>
             </button>
         </div>
         
@@ -1699,7 +1766,7 @@
         // Canvas setup
         const canvas = document.getElementById('place-canvas');
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        let canvasSize = 240; // Default size (will be updated from Firebase)
+        let canvasSize = 100; // Default size (will be updated from Firebase)
         const pixelSize = 4; // Size of each pixel for rendering
         
         // Current view properties
@@ -1715,7 +1782,7 @@
         // User interaction
         let selectedColor = '#ff4500';
         let lastPlacedTime = 0;
-        const cooldownTime = 2500; // 5 seconds cooldown
+        const cooldownTime = 5000; // 5 seconds cooldown
         let userId = '';
         let username = '';
         let userPresenceRef = null;
@@ -2088,7 +2155,7 @@
                     playSound('error');
                 }
             } else {
-                // Place the pixel in Firebase
+  
                 try {
                     await set(pixelRef, {
                         color: selectedColor.replace('#', ''),
@@ -2342,7 +2409,7 @@
                     username: usernames[userId] || 'Anonymous'
                 }))
                 .sort((a, b) => b.count - a.count)
-                .slice(0, 10); // Top 10 users
+                .slice(0, 30); // Top 10 users
             
             // Create leaderboard HTML
             const fragment = document.createDocumentFragment();
@@ -2673,8 +2740,8 @@
                     `;
                 } else {
                     const color = typeof pixelData === 'object' ? `#${pixelData.color}` : `#${pixelData}`;
-                    const username = pixelData.username || 'Anonymous';
-                    const timestamp = pixelData.timestamp ? formatTime(pixelData.timestamp) : 'Unknown';
+                    const username = pixelData.username || 'NOT FRICKEN BLAKE!';
+                    const timestamp = pixelData.timestamp ? formatTime(pixelData.timestamp) : 'pp';
                     
                     pixelInfo.innerHTML = `
                         <div class="pixel-info-header">
@@ -2808,16 +2875,38 @@
             canvas.style.cursor = 'crosshair';
         });
 
-        // Sidebar toggles
-        document.getElementById('left-sidebar-toggle').addEventListener('click', () => {
-            document.querySelector('.left-sidebar').classList.toggle('collapsed');
+        // Menu toggle functionality
+        const leftMenuToggle = document.getElementById('left-menu-toggle');
+        const rightMenuToggle = document.getElementById('right-menu-toggle');
+        const leftSidebar = document.querySelector('.left-sidebar');
+        const rightSidebar = document.querySelector('.right-sidebar');
+        const overlay = document.getElementById('overlay');
+        
+        function toggleLeftMenu() {
+            leftSidebar.classList.toggle('active');
+            overlay.style.display = leftSidebar.classList.contains('active') ? 'block' : 'none';
             playSound('click');
+        }
+        
+        function toggleRightMenu() {
+            rightSidebar.classList.toggle('active');
+            overlay.style.display = rightSidebar.classList.contains('active') ? 'block' : 'none';
+            playSound('click');
+        }
+        
+        leftMenuToggle.addEventListener('click', toggleLeftMenu);
+        rightMenuToggle.addEventListener('click', toggleRightMenu);
+        
+        // Close sidebars when clicking on overlay
+        overlay.addEventListener('click', () => {
+            leftSidebar.classList.remove('active');
+            rightSidebar.classList.remove('active');
+            overlay.style.display = 'none';
         });
         
-        document.getElementById('right-sidebar-toggle').addEventListener('click', () => {
-            document.querySelector('.sidebar:not(.left-sidebar)').classList.toggle('collapsed');
-            playSound('click');
-        });
+        // Close buttons inside sidebars
+        document.getElementById('left-sidebar-toggle').addEventListener('click', toggleLeftMenu);
+        document.getElementById('right-sidebar-toggle').addEventListener('click', toggleRightMenu);
 
         // Tab switching
         document.querySelectorAll('.tab').forEach(tab => {
@@ -3004,7 +3093,7 @@
             timelapseCtx.fillStyle = '#FFFFFF';
             timelapseCtx.fillRect(0, 0, canvasSize, canvasSize);
             
-            // Draw all pixels
+            // draw all pixels
             for (let x = 0; x < canvasSize; x++) {
                 for (let y = 0; y < canvasSize; y++) {
                     if (frame[x][y] !== '#FFFFFF') {
@@ -3014,41 +3103,41 @@
                 }
             }
             
-            // Update UI
+
             document.getElementById('timelapse-time').textContent = `Time: ${formatDate(timelapseFrames[frameIndex].timestamp)}`;
             document.getElementById('timelapse-frame').textContent = `Frame: ${frameIndex + 1}/${timelapseFrames.length}`;
             document.getElementById('timelapse-slider').value = frameIndex;
         }
         
-        // Timelapse slider control
+
         document.getElementById('timelapse-slider').addEventListener('input', (e) => {
             const frameIndex = parseInt(e.target.value);
             drawTimelapseFrame(frameIndex);
         });
         
-        // Play timelapse
+
         document.getElementById('timelapse-play').addEventListener('click', () => {
-            // Disable play button, enable pause
+
             document.getElementById('timelapse-play').disabled = true;
             document.getElementById('timelapse-pause').disabled = false;
             
-            // Start playing from current frame
+
             timelapseInterval = setInterval(() => {
                 if (currentTimelapseFrame < timelapseFrames.length - 1) {
                     drawTimelapseFrame(currentTimelapseFrame + 1);
                 } else {
-                    // Reached end, stop playback
+                
                     clearInterval(timelapseInterval);
                     timelapseInterval = null;
                     document.getElementById('timelapse-play').disabled = false;
                     document.getElementById('timelapse-pause').disabled = true;
                 }
-            }, 100); // 10 FPS
+            }, 100); // 10 fps
             
             playSound('click');
         });
         
-        // Pause timelapse
+
         document.getElementById('timelapse-pause').addEventListener('click', () => {
             if (timelapseInterval) {
                 clearInterval(timelapseInterval);
@@ -3061,17 +3150,12 @@
             playSound('click');
         });
         
-        // Export timelapse as GIF (simplified - in a real app you'd use a library like gif.js)
+
         document.getElementById('timelapse-export').addEventListener('click', () => {
             showNotification('Exporting timelapse as GIF... (this is a demo)', 'success');
             playSound('click');
             
-            // In a real implementation, you would:
-            // 1. Use a library like gif.js to create an animated GIF
-            // 2. Add each frame with appropriate delay
-            // 3. Render and download the GIF
-            
-            // Log export event
+     
             logEvent(analytics, 'timelapse_exported', {
                 user_id: userId,
                 frame_count: timelapseFrames.length
