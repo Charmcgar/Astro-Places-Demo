@@ -172,13 +172,12 @@
             background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
         }
 
-        #place-canvas {
-            background-color: transparent;
-            image-rendering: pixelated;
-            cursor: crosshair;
-            display: block;
-        }
-
+       #place-canvas {
+    background-color: transparent;
+    image-rendering: pixelated;
+    cursor: crosshair;
+    display: block;
+}
         .hover-pixel {
             position: absolute;
             pointer-events: none;
@@ -1765,8 +1764,9 @@
         }
 
         // Canvas setup
-        const canvas = document.getElementById('place-canvas');
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+       const canvas = document.getElementById('place-canvas');
+const ctx = canvas.getContext('2d');
+
         let canvasSize = 450; // Default size (will be updated from Firebase)
         const pixelSize = 4; // Size of each pixel for rendering
         
